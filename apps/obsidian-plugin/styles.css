@@ -170,6 +170,20 @@
 }
 
 .rlc-domain-info {
+  order: 1;
+  flex: 1;
+}
+
+.rlc-domain-actions {
+  order: 2;
+}
+
+.rlc-domain-head .rlc-caret {
+  order: 3;
+  margin-left: 2px;
+}
+
+.rlc-domain-info {
   min-width: 0;
 }
 
@@ -204,8 +218,10 @@
 .rlc-lit-card {
   position: relative;
   padding: 8px 8px 10px;
-  margin-top: 4px;
+  margin-top: 6px;
+  border: 1px solid var(--rlc-line);
   border-radius: 8px;
+  background: var(--rlc-surface);
 }
 
 .rlc-lit-card:hover {
@@ -534,8 +550,8 @@
 
 .rlc-domain-body {
   margin-top: 8px;
-  margin-left: 7px;
-  padding-left: 14px;
+  margin-left: 0;
+  padding-left: 18px;
   border-left: 1px solid color-mix(in srgb, var(--text-normal) 18%, transparent);
 }
 
@@ -583,8 +599,31 @@
 }
 
 .rlc-settings .setting-item {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 6px;
   padding-left: 0;
   padding-right: 0;
+}
+
+.rlc-settings .setting-item-info {
+  flex: 1 1 100%;
+}
+
+.rlc-settings .setting-item-control {
+  flex: 1 1 100%;
+  justify-content: flex-start;
+}
+
+.rlc-settings .setting-item-control input,
+.rlc-settings .setting-item-control select,
+.rlc-settings .setting-item-control textarea {
+  width: 100%;
+}
+
+.rlc-settings .setting-item-description {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .rlc-settings .setting-item-control {
@@ -933,9 +972,9 @@
 
 /* 输入框高度硬上限 */
 .rlc-modal textarea {
-  height: 56px !important;
-  min-height: 56px !important;
-  max-height: 56px;
+  height: 88px !important;
+  min-height: 88px !important;
+  max-height: 88px;
   resize: vertical;
 }
 
@@ -949,4 +988,41 @@
 .rlc-settings input[type="password"] {
   height: 26px !important;
   min-height: 26px;
+}
+
+/* 日历：星期栏与日期格用底色区分 */
+.rlc-calendar-weekdays {
+  background: var(--rlc-surface-2);
+  border-radius: 6px;
+  padding: 3px 0;
+  margin-bottom: 4px;
+}
+
+.rlc-calendar-weekday {
+  color: var(--rlc-muted);
+  font-weight: 600;
+}
+
+.rlc-calendar-grid {
+  background: var(--rlc-surface-2);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.rlc-calendar-day {
+  background: var(--rlc-surface);
+}
+
+.rlc-calendar-blank {
+  background: transparent;
+}
+
+.rlc-calendar-today {
+  background: var(--rlc-accent-weak);
+  font-weight: 700;
+}
+
+/* 领域之间再拉开一点 */
+.rlc-domain-card + .rlc-domain-card {
+  margin-top: 14px;
 }
