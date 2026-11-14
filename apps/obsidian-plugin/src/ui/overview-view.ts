@@ -615,11 +615,12 @@ export class ResearchOverviewView extends ItemView {
       void this.render();
     });
 
-    const grid = calendar.createDiv({ cls: "rlc-calendar-grid" });
+    const weekdays = calendar.createDiv({ cls: "rlc-calendar-weekdays" });
     for (const label of ["一", "二", "三", "四", "五", "六", "日"]) {
-      grid.createDiv({ text: label, cls: "rlc-calendar-weekday" });
+      weekdays.createDiv({ text: label, cls: "rlc-calendar-weekday" });
     }
 
+    const grid = calendar.createDiv({ cls: "rlc-calendar-grid" });
     const first = new Date(this.monthCursor.getFullYear(), this.monthCursor.getMonth(), 1);
     const offset = (first.getDay() + 6) % 7;
     const days = new Date(this.monthCursor.getFullYear(), this.monthCursor.getMonth() + 1, 0).getDate();
