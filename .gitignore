@@ -30,3 +30,6 @@ _src/
 文献PDF/
 apps/obsidian-plugin/main.js
 *.tsbuildinfo
+
+# 插件发布仓库（单独公开）
+_release/
