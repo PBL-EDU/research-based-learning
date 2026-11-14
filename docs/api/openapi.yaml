@@ -1,0 +1,711 @@
+openapi: 3.1.0
+info:
+  title: 研究性学习社区 API
+  version: 1.0.0
+  description: |
+    三端共享契约：Obsidian 插件（发布/读取模板与讨论）、公众门户（浏览/互动）、运维（健康检查）。
+    本文件是对外说明文档；运行时校验与 SDK 类型以 packages/contract 的 Zod 定义为唯一真相。
+servers:
+  - url: https://api.community.example.dev/api/v1
+    description: 生产
+  - url: http://localhost:4000/api/v1
+    description: 本地
+
+tags:
+  - name: auth
+  - name: templates
+  - name: publications
+  - name: threads
+  - name: engagement
+  - name: directory
+  - name: ops
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/device/code:
+    post:
+      tags: [auth]
+      summary: 插件申请设备码
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceName: { type: string, example: "MacBook-Pro-Obsidian" }
+                pluginVersion: { type: string, example: "0.3.1" }
+      responses:
+        '200':
+          description: 展示 user_code 给学生，在浏览器 /activate 输入
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [deviceCode, userCode, verificationUrl, expiresIn]
+                properties:
+                  deviceCode: { type: string }
+                  userCode: { type: string, example: "KX7P-2QWM" }
+                  verificationUrl: { type: string, format: uri }
+                  expiresIn: { type: integer, example: 600 }
+
+  /auth/device/token:
+    post:
+      tags: [auth]
+      summary: 轮询换取访问令牌
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceCode]
+              properties:
+                deviceCode: { type: string }
+      responses:
+        '200':
+          description: 授权完成
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenPair' }
+        '428':
+          description: 尚未在浏览器确认，继续轮询（authorization_pending）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /me:
+    get:
+      tags: [auth]
+      summary: 当前账号
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+
+  /templates:
+    get:
+      tags: [templates]
+      summary: 拉取模板 / JSON Schema / 提示词（支持 ETag）
+      parameters:
+        - in: header
+          name: If-None-Match
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag: { schema: { type: string } }
+            Cache-Control: { schema: { type: string, example: "public, max-age=300" } }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [schemaVersion, templates]
+                properties:
+                  schemaVersion: { type: string, example: "2026-11-a" }
+                  templates:
+                    type: array
+                    items: { $ref: '#/components/schemas/CardTemplate' }
+        '304':
+          description: 未变更，使用本地缓存
+
+  /publications:
+    get:
+      tags: [publications]
+      summary: 浏览已发布卡片
+      parameters:
+        - { in: query, name: domain, schema: { type: string }, description: 领域 slug }
+        - { in: query, name: author, schema: { type: string }, description: author handle }
+        - { in: query, name: kind, schema: { $ref: '#/components/schemas/PublicationKind' } }
+        - { in: query, name: q, schema: { type: string }, description: 标题/正文关键词 }
+        - { in: query, name: sort, schema: { type: string, enum: [recent, popular] }, description: 默认 recent }
+        - { in: query, name: cursor, schema: { type: string } }
+        - { in: query, name: limit, schema: { type: integer, default: 20, maximum: 50 } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/PublicationSummary' }
+                  nextCursor: { type: [string, 'null'] }
+    post:
+      tags: [publications]
+      summary: 发布卡片（multipart：payload JSON + assets 文件）
+      description: |
+        幂等：服务端以 (author, clientCardId, contentHash) 判重。
+        同 card + 同 hash → 200 DUPLICATE_CONTENT；同 card + 新 hash → 请改用 PATCH。
+        二进制附件一律拒收（仅接受图片 mime 白名单）。
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          schema: { type: string }
+          description: 建议为 clientCardId + contentHash 的哈希
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [payload]
+              properties:
+                payload:
+                  type: object
+                  description: JSON 部分（字符串字段发送时按 JSON 序列化）
+                  properties:
+                    schema: { type: string, example: "dr-card@1" }
+                    clientCardId: { type: string, format: uuid }
+                    kind: { $ref: '#/components/schemas/PublicationKind' }
+                    domain:
+                      type: object
+                      properties:
+                        name: { type: string }
+                        slug: { type: string }
+                    theme: { type: string }
+                    title: { type: string, maxLength: 120 }
+                    bodyMd: { type: string }
+                    frontmatter: { type: object, additionalProperties: true }
+                    source: { $ref: '#/components/schemas/SourceRef' }
+                    assets:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          localPath: { type: string }
+                          role: { type: string, enum: [visual, cover, diagram] }
+                          sha256: { type: string }
+                    visibility: { type: string, enum: [public, community], default: public }
+                    acknowledge:
+                      type: object
+                      properties:
+                        noPdfUploaded: { type: boolean }
+                        citeLengthUnder300: { type: boolean }
+                assets:
+                  type: array
+                  items: { type: string, format: binary }
+            encoding:
+              payload:
+                contentType: application/json
+      responses:
+        '201':
+          description: 发布成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  publication: { $ref: '#/components/schemas/PublicationEnvelope' }
+                  warnings:
+                    type: array
+                    items: { $ref: '#/components/schemas/Warning' }
+        '200':
+          description: 内容已存在（DUPLICATE_CONTENT）
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  publication: { $ref: '#/components/schemas/PublicationEnvelope' }
+        '409':
+          description: 已存在但内容不同，应改用 PATCH 生成新修订
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '422':
+          description: schema 或字段校验失败
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '429':
+          description: 超出发布配额或频率
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /publications/{id}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [publications]
+      summary: 卡片详情（门户）
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PublicationDetail' }
+        '404':
+          description: 不存在或不可见
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+    patch:
+      tags: [publications]
+      summary: 提交新修订（multipart，同 POST 结构）
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                payload: { type: object }
+                assets:
+                  type: array
+                  items: { type: string, format: binary }
+      responses:
+        '200':
+          description: 生成 revision+1
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  publication: { $ref: '#/components/schemas/PublicationEnvelope' }
+        '403':
+          description: 非作者
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /publications/{id}/source:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [publications]
+      summary: 取原始 md + frontmatter（仅作者）
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  revision: { type: integer }
+                  bodyMd: { type: string }
+                  frontmatter: { type: object, additionalProperties: true }
+                  contentHash: { type: string }
+
+  /publications/{id}/withdraw:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [publications]
+      summary: 撤回（软下架，保留历史与评论）
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  status: { type: string, example: withdrawn }
+
+  /threads/{publicationId}:
+    parameters:
+      - { in: path, name: publicationId, required: true, schema: { type: string } }
+    get:
+      tags: [threads]
+      summary: 讨论树（嵌套，最深 4 层）
+      description: 插件"摘取"与门户"讨论"共用此接口，匿名可读。
+      parameters:
+        - { in: query, name: rootId, schema: { type: string }, description: 只取某子树 }
+        - { in: query, name: limit, schema: { type: integer, default: 100 } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [publicationId, nodes]
+                properties:
+                  publicationId: { type: string }
+                  total: { type: integer }
+                  nodes:
+                    type: array
+                    items: { $ref: '#/components/schemas/CommentNode' }
+
+  /comments:
+    post:
+      tags: [engagement]
+      summary: 发表评论或回复
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [publicationId, body]
+              properties:
+                publicationId: { type: string }
+                parentId: { type: [string, 'null'] }
+                body: { type: string, minLength: 1, maxLength: 2000 }
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CommentNode' }
+        '403':
+          description: 未登录或未注册
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+
+  /comments/{id}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    patch:
+      tags: [engagement]
+      summary: 编辑评论（10 分钟内）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body: { type: string, maxLength: 2000 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CommentNode' }
+    delete:
+      tags: [engagement]
+      summary: 软删评论（保留树结构与占位）
+      responses:
+        '204': { description: 已删除 }
+
+  /reactions:
+    put:
+      tags: [engagement]
+      summary: 点赞/收藏（幂等）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [targetType, targetId, kind]
+              properties:
+                targetType: { type: string, enum: [publication, comment] }
+                targetId: { type: string }
+                kind: { type: string, enum: [like, bookmark] }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  targetId: { type: string }
+                  kind: { type: string }
+                  count: { type: integer }
+                  active: { type: boolean }
+    delete:
+      tags: [engagement]
+      summary: 取消点赞/收藏
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [targetType, targetId, kind]
+              properties:
+                targetType: { type: string, enum: [publication, comment] }
+                targetId: { type: string }
+                kind: { type: string, enum: [like, bookmark] }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  targetId: { type: string }
+                  kind: { type: string }
+                  count: { type: integer }
+                  active: { type: boolean }
+
+  /reposts:
+    post:
+      tags: [engagement]
+      summary: 转发（可带一句话点评）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [publicationId]
+              properties:
+                publicationId: { type: string }
+                note: { type: string, maxLength: 300 }
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  createdAt: { type: string, format: date-time }
+
+  /reports:
+    post:
+      tags: [engagement]
+      summary: 举报内容
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [targetType, targetId, reason]
+              properties:
+                targetType: { type: string, enum: [publication, comment] }
+                targetId: { type: string }
+                reason: { type: string, enum: [spam, abuse, privacy, copyright, other] }
+                detail: { type: string, maxLength: 500 }
+      responses:
+        '201': { description: 已受理 }
+
+  /domains:
+    get:
+      tags: [directory]
+      summary: 领域列表
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        slug: { type: string }
+                        name: { type: string }
+                        publicationCount: { type: integer }
+
+  /authors/{handle}:
+    parameters:
+      - { in: path, name: handle, required: true, schema: { type: string } }
+    get:
+      tags: [directory]
+      summary: 同学主页
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  handle: { type: string }
+                  displayName: { type: string }
+                  bio: { type: [string, 'null'] }
+                  publishedCount: { type: integer }
+                  publications:
+                    type: array
+                    items: { $ref: '#/components/schemas/PublicationSummary' }
+
+  /healthz:
+    get:
+      tags: [ops]
+      summary: 健康检查
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  version: { type: string }
+                  db: { type: string, example: up }
+                  storage: { type: string, example: up }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: device-token
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sid
+
+  schemas:
+    Account:
+      type: object
+      properties:
+        id: { type: string }
+        handle: { type: string }
+        displayName: { type: string }
+        role: { type: string, enum: [student, reader, teacher, admin] }
+        createdAt: { type: string, format: date-time }
+
+    TokenPair:
+      type: object
+      required: [accessToken, expiresIn]
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: [string, 'null'] }
+        expiresIn: { type: integer, example: 86400 }
+
+    PublicationKind:
+      type: string
+      enum: [deep_read, practice, plan, article_summary, domain_summary]
+
+    SourceRef:
+      type: object
+      description: 来源可以是文献、讨论节点或实践
+      properties:
+        type: { type: string, enum: [literature, discussion, practice] }
+        citekey: { type: string }
+        doi: { type: string }
+        title: { type: string }
+        nodeId: { type: string, description: 摘取自讨论树时对应的评论 id }
+
+    CardTemplate:
+      type: object
+      required: [id, version, mdTemplate]
+      properties:
+        id: { type: string, example: deep_read_card }
+        version: { type: integer, example: 3 }
+        mdTemplate: { type: string }
+        jsonSchema: { type: object, additionalProperties: true }
+        prompt:
+          type: object
+          properties:
+            system: { type: string }
+            userTemplate: { type: string }
+            outputFormat: { type: string, example: json }
+        examples:
+          type: array
+          items: { type: string }
+
+    PublicationSummary:
+      type: object
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        title: { type: string }
+        kind: { $ref: '#/components/schemas/PublicationKind' }
+        domain:
+          type: object
+          properties:
+            slug: { type: string }
+            name: { type: string }
+        author:
+          type: object
+          properties:
+            handle: { type: string }
+            displayName: { type: string }
+        excerpt: { type: string }
+        coverUrl: { type: [string, 'null'], format: uri }
+        counts:
+          type: object
+          properties:
+            comments: { type: integer }
+            likes: { type: integer }
+            reposts: { type: integer }
+        publishedAt: { type: string, format: date-time }
+
+    PublicationDetail:
+      allOf:
+        - $ref: '#/components/schemas/PublicationSummary'
+        - type: object
+          properties:
+            bodyHtml: { type: string }
+            revision: { type: integer }
+            source: { $ref: '#/components/schemas/SourceRef' }
+            visuals:
+              type: array
+              items:
+                type: object
+                properties:
+                  url: { type: string, format: uri }
+                  kind: { type: string, enum: [image, diagram] }
+                  alt: { type: string }
+
+    PublicationEnvelope:
+      type: object
+      properties:
+        id: { type: string }
+        url: { type: string, format: uri }
+        revision: { type: integer }
+        status: { type: string, enum: [draft, in_review, published, withdrawn, blocked] }
+        slug: { type: string }
+        contentHash: { type: string }
+        publishedAt: { type: string, format: date-time }
+
+    CommentNode:
+      type: object
+      properties:
+        id: { type: string }
+        parentId: { type: [string, 'null'] }
+        depth: { type: integer, minimum: 0, maximum: 4 }
+        author:
+          type: object
+          properties:
+            handle: { type: string }
+            displayName: { type: string }
+        body: { type: string }
+        status: { type: string, enum: [visible, hidden, deleted] }
+        likeCount: { type: integer }
+        likedByMe: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        replies:
+          type: array
+          items: { $ref: '#/components/schemas/CommentNode' }
+
+    Warning:
+      type: object
+      properties:
+        code: { type: string, example: DOMAIN_CREATED }
+        message: { type: string }
+
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, example: CARD_SCHEMA_UNSUPPORTED }
+            message: { type: string }
+            details: { type: object, additionalProperties: true }
+            requestId: { type: string }

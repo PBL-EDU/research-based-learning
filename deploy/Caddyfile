@@ -1,0 +1,105 @@
+# Caddy 2 · 自动 HTTPS + 反代
+#
+# 环境变量（来自 .env）：
+#   PORTAL_DOMAIN   community.example.com
+#   API_DOMAIN      api.example.com
+#   FILES_DOMAIN    files.example.com（反代 MinIO，给预签名 URL 用）
+#   ACME_EMAIL      证书到期通知邮箱
+#
+# 硬性要求：三个域名必须不同，且都已备案并解析到本机。
+# 未备案时 Caddy 的 HTTP-01 验证会被接入商拦截，且反复失败会触发 Let's Encrypt 限流（恢复要一周）。
+# 所以：备案通过之前，不要启动 caddy 容器。
+#
+# 刻意没做的事：
+#   - 不配 trusted_proxies：这台机器就是边缘，前面没有别的代理，配了反而容易把客户端 IP 搞错
+#   - 不配 request_body 限流：该指令在 Caddy 里仍是 experimental（v2.10+），
+#     为了一个「小请求体上限」把启动绑到特定版本不划算；请求体上限交给 NestJS body parser
+
+{
+	email {$ACME_EMAIL}
+
+	# 管理 API 只监听本机（容器内），不对外
+	admin 127.0.0.1:2019
+}
+
+# ---------------------------------------------------------------------------
+# 公共片段：压缩、安全头、访问日志
+# ---------------------------------------------------------------------------
+(common) {
+	encode zstd gzip
+
+	header {
+		# 不暴露服务器软件与版本
+		-Server
+		X-Content-Type-Options nosniff
+		# 门户暂无需要被嵌入的场景，直接禁掉更安全；将来要嵌视频再放开 frame-ancestors
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+
+	log {
+		# 落到命名卷 caddylogs，由 docker 管理，不污染系统盘
+		output file /var/log/caddy/access.log {
+			roll_size 20MiB
+			roll_keep 5
+		}
+		# JSON 格式便于：jq 查 5xx、统计慢请求、排查 40164
+		format json
+	}
+}
+
+# ---------------------------------------------------------------------------
+# API 域名：给 Obsidian 插件用（设备码授权、发布、拉取讨论）
+# 路径前缀 /api 由 NestJS 的 globalPrefix 负责，Caddy 原样透传
+# ---------------------------------------------------------------------------
+{$API_DOMAIN} {
+	import common
+
+	reverse_proxy api:4000 {
+		# 流式响应（SSE / 长轮询）不缓冲
+		flush_interval -1
+		header_up X-Real-IP {remote_host}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# 资产域名：直接反代 MinIO，不剥路径
+#
+# 为什么要单独一个子域名：SigV4 预签名把 Host 和路径都算进签名。
+# 如果拿 files.example.com 签名却走 community.example.com/files/... 访问，
+# Host 和路径都变了 → SignatureDoesNotMatch，图片全 403。
+# 单独子域名 + 原样反代（不 handle_path）可以让签名和访问完全一致。
+#
+# 安全性：桶是 private，匿名请求只会拿到 403；能读到内容的只有带合法签名的 URL。
+# ---------------------------------------------------------------------------
+{$FILES_DOMAIN} {
+	import common
+	reverse_proxy minio:9000 {
+		header_up X-Real-IP {remote_host}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# 门户域名：给读者用（Next.js SSR）
+# 浏览器侧的同源 /api/* 走这里反代，避免 CORS 与跨站 Cookie 问题
+# ---------------------------------------------------------------------------
+{$PORTAL_DOMAIN} {
+	import common
+
+	# 同源 API：浏览器请求 https://community.xxx/api/... → api:4000/api/...
+	handle /api/* {
+		reverse_proxy api:4000 {
+			flush_interval -1
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# 其余全部给 Next.js
+	handle {
+		reverse_proxy portal:3000 {
+			header_up X-Real-IP {remote_host}
+		}
+	}
+}

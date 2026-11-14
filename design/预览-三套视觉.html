@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>研究性学习社区 · 三套视觉方案</title>
+<style>
+  :root {
+    --page-bg: #f2f2f4;
+    --page-ink: #1b1b1f;
+    --page-muted: #6b7280;
+    --page-line: #dcdce2;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--page-bg);
+    color: var(--page-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.6;
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    padding: 14px 28px;
+    background: rgba(255,255,255,.92);
+    border-bottom: 1px solid var(--page-line);
+    backdrop-filter: blur(8px);
+  }
+  .topbar h1 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: .01em; }
+  .topbar .hint { color: var(--page-muted); font-size: 12px; }
+  .switcher { display: flex; gap: 8px; margin-left: auto; }
+  .switcher button {
+    border: 1px solid var(--page-line); background: #fff; color: var(--page-ink);
+    padding: 6px 14px; border-radius: 999px; cursor: pointer; font-size: 13px;
+  }
+  .switcher button[aria-pressed="true"] { background: #1b1b1f; color: #fff; border-color: #1b1b1f; }
+
+  .stage {
+    display: grid;
+    grid-template-columns: 400px minmax(560px, 1fr);
+    gap: 28px;
+    padding: 28px;
+    align-items: start;
+  }
+  @media (max-width: 1080px) { .stage { grid-template-columns: 1fr; } }
+
+  .panel-label {
+    font-size: 12px; color: var(--page-muted); margin: 0 0 8px 2px;
+    letter-spacing: .06em; text-transform: uppercase;
+  }
+
+  /* ============ 主题令牌 ============ */
+  body[data-theme="a"] {
+    --bg: #faf8f3; --surface: #fffdf8; --ink: #211f1b; --muted: #7a7468;
+    --line: #e4ddd0; --accent: #8a5a2b; --accent-weak: #f3ead9;
+    --radius: 2px; --shadow: none;
+    --font-head: "Songti SC", "Noto Serif SC", Georgia, "Times New Roman", serif;
+    --font-body: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --body-lh: 1.85;
+    --btn-bg: transparent; --btn-border: 1px solid var(--line); --btn-radius: 2px;
+    --chip-bg: transparent; --chip-border: 1px solid var(--line);
+  }
+  body[data-theme="b"] {
+    --bg: #f6f7f9; --surface: #ffffff; --ink: #0f172a; --muted: #64748b;
+    --line: #e5e7eb; --accent: #4f46e5; --accent-weak: #eef2ff;
+    --radius: 12px;
+    --shadow: 0 1px 2px rgba(15,23,42,.06), 0 10px 30px rgba(15,23,42,.07);
+    --font-head: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --body-lh: 1.7;
+    --btn-bg: #fff; --btn-border: 1px solid var(--line); --btn-radius: 8px;
+    --chip-bg: var(--accent-weak); --chip-border: 1px solid transparent;
+  }
+  body[data-theme="c"] {
+    --bg: #ffffff; --surface: #ffffff; --ink: #111111; --muted: #8a8a8a;
+    --line: #ececec; --accent: #111111; --accent-weak: #f5f5f5;
+    --radius: 0; --shadow: none;
+    --font-head: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --body-lh: 1.9;
+    --btn-bg: transparent; --btn-border: none; --btn-radius: 0;
+    --chip-bg: transparent; --chip-border: none;
+  }
+
+  /* ============ 通用组件（两端共用） ============ */
+  .app { background: var(--bg); color: var(--ink); font-family: var(--font-body); line-height: var(--body-lh); }
+  .surface { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 1px 8px; font-size: 11px; letter-spacing: .02em;
+    background: var(--chip-bg); border: var(--chip-border); border-radius: 999px;
+    color: var(--muted);
+  }
+  body[data-theme="c"] .chip { padding: 0; border-radius: 0; }
+
+  .btn {
+    font: inherit; font-size: 12px; line-height: 1.4;
+    padding: 3px 10px; cursor: pointer;
+    background: var(--btn-bg); border: var(--btn-border); border-radius: var(--btn-radius);
+    color: var(--ink);
+  }
+  body[data-theme="c"] .btn { padding: 2px 0; text-decoration: underline; text-underline-offset: 3px; color: var(--muted); }
+  .btn-primary {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  body[data-theme="a"] .btn-primary { color: var(--surface); }
+  body[data-theme="c"] .btn-primary { background: transparent; border: none; color: var(--ink); text-decoration: underline; }
+
+  /* ============ 左：Obsidian 右栏模拟 ============ */
+  .ob-frame {
+    width: 380px; border: 1px solid var(--page-line); border-radius: 10px;
+    overflow: hidden; background: #fff; box-shadow: 0 12px 40px rgba(15,23,42,.10);
+  }
+  .ob-titlebar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; background: #ececf1; border-bottom: 1px solid var(--page-line);
+    font-size: 11px; color: #555;
+  }
+  .ob-dot { width: 8px; height: 8px; border-radius: 50%; background: #c7c7d0; }
+  .ob-body { padding: 12px 12px 18px; }
+
+  .side-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .side-head h2 { font-family: var(--font-head); font-size: 15px; margin: 0; }
+  .identity {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted);
+  }
+  .avatar {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent-weak); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; border: 1px solid var(--line);
+  }
+
+  .tree { font-size: 13px; }
+  .node-domain { padding: 8px 6px 6px; border-top: 1px solid var(--line); }
+  .node-domain:first-child { border-top: none; }
+  .tree-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .tree-name { font-weight: 600; font-family: var(--font-head); font-size: 14px; }
+  .count { color: var(--muted); font-size: 11px; }
+  .tree-actions { display: flex; gap: 6px; margin-left: auto; }
+
+  .node-lit {
+    margin: 8px 0 0 10px; padding: 6px 0 4px 10px;
+    border-left: 2px solid var(--line);
+  }
+  body[data-theme="c"] .node-lit { border-left: none; padding-left: 0; }
+  .lit-title { font-size: 12.5px; }
+  .lit-meta { color: var(--muted); font-size: 11px; margin-top: 1px; }
+
+  .card-row {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 4px 2px; border-radius: 4px;
+  }
+  body[data-theme="b"] .card-row:hover { background: var(--accent-weak); }
+  .card-title { flex: 1; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .status-ok { color: #15803d; font-size: 11px; }
+  body[data-theme="a"] .status-ok { color: #5b7a3a; }
+
+  /* ============ 右：门户模拟 ============ */
+  .web-frame {
+    border: 1px solid var(--page-line); border-radius: 10px; overflow: hidden;
+    background: #fff; box-shadow: 0 12px 40px rgba(15,23,42,.10);
+  }
+  .browser-bar {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    background: #ececf1; border-bottom: 1px solid var(--page-line); font-size: 11px; color: #555;
+  }
+  .url {
+    flex: 1; background: #fff; border: 1px solid var(--page-line); border-radius: 999px;
+    padding: 2px 12px; font-size: 11px; color: #666;
+  }
+  .web-body { background: var(--bg); color: var(--ink); font-family: var(--font-body); }
+
+  .site-nav {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 24px; border-bottom: 1px solid var(--line); background: var(--surface);
+  }
+  .brand { font-family: var(--font-head); font-weight: 700; font-size: 14px; }
+  .nav-links { display: flex; gap: 12px; margin-left: auto; font-size: 12px; color: var(--muted); }
+
+  .web-main { display: grid; grid-template-columns: 1fr 240px; gap: 24px; padding: 24px; }
+  @media (max-width: 760px) { .web-main { grid-template-columns: 1fr; } }
+
+  .crumbs { font-size: 11.5px; color: var(--muted); margin-bottom: 10px; }
+  .crumbs b { color: var(--ink); font-weight: 600; }
+
+  .article { padding: 26px 28px; }
+  .article h1 {
+    font-family: var(--font-head); font-size: 24px; line-height: 1.35; margin: 8px 0 10px;
+    letter-spacing: -0.01em;
+  }
+  body[data-theme="c"] .article h1 { font-size: 28px; font-weight: 300; letter-spacing: .01em; }
+  .byline { color: var(--muted); font-size: 12.5px; margin: 0 0 4px; }
+  .source { font-size: 12.5px; margin: 6px 0 0; }
+
+  .article h2 {
+    font-family: var(--font-head); font-size: 16px; margin: 26px 0 8px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--line);
+  }
+  body[data-theme="b"] .article h2 { border-bottom: none; font-size: 15px; letter-spacing: .01em; }
+  body[data-theme="c"] .article h2 { border-bottom: none; font-weight: 500; }
+
+  .quote {
+    margin: 12px 0; padding: 10px 14px;
+    border-left: 3px solid var(--accent); background: var(--accent-weak);
+    color: var(--ink); font-size: 14px;
+  }
+  body[data-theme="a"] .quote { background: #f7f1e6; }
+  body[data-theme="c"] .quote { border-left: none; padding-left: 0; background: transparent; color: var(--muted); font-style: italic; }
+
+  .article p { font-size: 14.5px; margin: 8px 0; }
+  .actions { display: flex; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+
+  .aside { font-size: 12.5px; }
+  .aside h3 { font-family: var(--font-head); font-size: 13px; margin: 0 0 8px; }
+  .member { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px dashed var(--line); }
+  .member:last-child { border-bottom: none; }
+  .member .name { flex: 1; }
+  .member .num { color: var(--muted); font-size: 11px; }
+
+  .theme-note {
+    margin: 0 28px 40px; padding: 16px 18px;
+    background: #fff; border: 1px solid var(--page-line); border-radius: 10px;
+    font-size: 13px; color: #374151;
+  }
+  .theme-note b { color: #111; }
+  .theme-note ul { margin: 8px 0 0; padding-left: 18px; }
+  .theme-note li { margin: 3px 0; }
+  .muted { color: var(--page-muted); }
+</style>
+</head>
+<body data-theme="a">
+
+<div class="topbar">
+  <h1>研究性学习社区 · 三套视觉方案</h1>
+  <span class="hint">左：Obsidian 右栏　右：门户卡片详情　同一套结构，三种气质</span>
+  <div class="switcher">
+    <button data-set="a" aria-pressed="true">A 学术纸本</button>
+    <button data-set="b" aria-pressed="false">B 卡片工作台</button>
+    <button data-set="c" aria-pressed="false">C 极简文档流</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- ================= 左：OB 右栏 ================= -->
+  <div>
+    <p class="panel-label">Obsidian 右栏（Sidebar）</p>
+    <div class="ob-frame">
+      <div class="ob-titlebar">
+        <span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span>
+        <span style="margin-left:8px">研究性学习总览</span>
+      </div>
+      <div class="ob-body app">
+        <div class="side-head">
+          <h2>研究性学习 · 总览</h2>
+          <span class="identity"><span class="avatar">邓</span> denghao</span>
+        </div>
+
+        <div class="tree">
+          <!-- 领域 -->
+          <div class="node-domain">
+            <div class="tree-row">
+              <span class="tree-name">情绪</span>
+              <span class="count">1 篇 · 1 张</span>
+              <span class="tree-actions">
+                <button class="btn">生成综述</button>
+                <button class="btn">＋ 文献</button>
+              </span>
+            </div>
+
+            <!-- 文献 -->
+            <div class="node-lit">
+              <div class="tree-row">
+                <span class="lit-title">The voice of emotion（2006）</span>
+                <span class="tree-actions">
+                  <button class="btn">略读</button>
+                  <button class="btn">＋ 卡片</button>
+                </span>
+              </div>
+              <div class="lit-meta">Johnstone, T. 等 · 已出卡片</div>
+
+              <!-- 卡片 -->
+              <div class="card-row">
+                <span class="card-title">测试卡片</span>
+                <span class="status-ok">已发布</span>
+              </div>
+              <div class="card-row">
+                <span class="card-title">声音里的情绪线索</span>
+                <button class="btn btn-primary">发布</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 第二个领域：空态 -->
+          <div class="node-domain">
+            <div class="tree-row">
+              <span class="tree-name">课程与教学论</span>
+              <span class="count">0 篇 · 0 张</span>
+              <span class="tree-actions">
+                <button class="btn btn-primary">生成综述</button>
+                <button class="btn">＋ 文献</button>
+              </span>
+            </div>
+            <div class="lit-meta" style="margin-left:2px">还没有文献。先点「生成综述」让 AI 起草，再挑文献入库。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 右：门户 ================= -->
+  <div>
+    <p class="panel-label">门户 · 卡片详情页</p>
+    <div class="web-frame">
+      <div class="browser-bar">
+        <span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span>
+        <span class="url">rlc.dreamook.com/o/xingzhi/p/denghao/c/pub_ec1f69</span>
+      </div>
+      <div class="web-body app">
+        <header class="site-nav">
+          <span class="brand">Research-based Learning Community</span>
+          <nav class="nav-links">
+            <span>知行书院</span><span>同学</span><span>领域</span>
+          </nav>
+        </header>
+
+        <div class="web-main">
+          <article class="article surface">
+            <div class="crumbs">知行书院 › 邓豪 › 情绪 › <b>测试卡片</b></div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <span class="chip">精读</span>
+              <span class="chip">情绪</span>
+              <span class="muted" style="font-size:11.5px">2026-11-14 · 修订 v1</span>
+            </div>
+
+            <h1>测试卡片</h1>
+            <p class="byline">邓豪 · 文献作者：Johnstone, T. 等 · 2006</p>
+            <p class="source">来源：<u>The voice of emotion: An FMRI study…</u>（10.1093/scan/nsl005）</p>
+
+            <h2>原文</h2>
+            <div class="quote">情绪不是附加在声音上的装饰，而是声音本身携带的信息。</div>
+
+            <h2>Aha</h2>
+            <p>我原来以为先有情绪、再通过声音表达；这项研究让我看到，听觉线索本身就构成情绪识别的一部分。</p>
+
+            <h2>行动指导</h2>
+            <p>下次听学生朗读时，先记录声音特征，再问「你觉得他当时是什么感受」。</p>
+
+            <div class="actions">
+              <button class="btn">评论（关闭）</button>
+              <button class="btn">点赞</button>
+              <button class="btn">转发</button>
+            </div>
+          </article>
+
+          <aside class="aside">
+            <h3>知行书院 · 同学</h3>
+            <div class="member"><span class="avatar">邓</span><span class="name">邓豪</span><span class="num">3 张</span></div>
+            <div class="member"><span class="avatar">林</span><span class="name">林小雨</span><span class="num">5 张</span></div>
+            <div class="member"><span class="avatar">陈</span><span class="name">陈默</span><span class="num">2 张</span></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="theme-note" id="note">
+  <b>A 学术纸本</b>：宋体标题 + 米白纸底 + 细线分隔，无阴影无圆角。
+  <ul>
+    <li>优点：与「文献、研究、笔记」的气质最贴，长时间阅读不累；与 Obsidian 默认主题冲突小。</li>
+    <li>代价：信息密度偏低，操作按钮需要更克制的样式；深色模式下需要重新配一套纸感色。</li>
+  </ul>
+</div>
+
+<script>
+  const notes = {
+    a: `<b>A 学术纸本</b>：宋体标题 + 米白纸底 + 细线分隔，无阴影无圆角。
+      <ul>
+        <li>优点：与「文献、研究、笔记」的气质最贴，长时间阅读不累；与 Obsidian 默认主题冲突小。</li>
+        <li>代价：信息密度偏低，操作按钮需要更克制的样式；深色模式下需要重新配一套纸感色。</li>
+      </ul>`,
+    b: `<b>B 卡片工作台</b>：圆角卡片 + 轻阴影 + 彩色标签，信息密度高。
+      <ul>
+        <li>优点：层次最清楚，按钮和状态一眼可见；门户端更接近现代产品，学生上手快。</li>
+        <li>代价：与 Obsidian 默认主题差异较大，插件内可能需要覆盖较多变量；偏「工具感」，学术气质弱一些。</li>
+      </ul>`,
+    c: `<b>C 极简文档流</b>：无边框无阴影，单色强调，大留白。
+      <ul>
+        <li>优点：最安静，注意力全在文字上；两端实现成本最低，深色模式几乎不用额外适配。</li>
+        <li>代价：层次靠字号和间距撑，操作按钮存在感弱；卡片多了之后不容易扫读。</li>
+      </ul>`
+  };
+
+  document.querySelectorAll('.switcher button').forEach((button) => {
+    button.addEventListener('click', () => {
+      const theme = button.dataset.set;
+      document.body.dataset.theme = theme;
+      document.querySelectorAll('.switcher button').forEach((item) => {
+        item.setAttribute('aria-pressed', String(item === button));
+      });
+      document.getElementById('note').innerHTML = notes[theme];
+    });
+  });
+</script>
+</body>
+</html>

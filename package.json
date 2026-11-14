@@ -1,0 +1,14 @@
+{
+  "name": "research-learning-community",
+  "version": "0.1.0",
+  "private": true,
+  "description": "研究性学习社区：Obsidian 插件 + 服务端 + 公众入口",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck"
+  }
+}

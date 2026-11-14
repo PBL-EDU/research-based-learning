@@ -1,0 +1,25 @@
+{
+  "name": "@rlc/portal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Research-based Learning Community · 公众入口（Next.js）",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "postbuild": "node scripts/patch-standalone.cjs",
+    "start": "next start -p 3000",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rlc/contract": "workspace:*",
+    "mermaid": "^12.3.0",
+    "next": "^16.4.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}

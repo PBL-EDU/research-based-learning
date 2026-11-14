@@ -1,0 +1,32 @@
+node_modules/
+dist/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.turbo/
+test-results/
+playwright-report/
+*.zip
+.obsidian/
+_src/tmp/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# 运行时数据与打包产物
+_build/
+data/
+
+# 本地专用（含版权 PDF、一次性脚本、插件构建产物）
+_src/
+文献PDF/
+apps/obsidian-plugin/main.js
+*.tsbuildinfo

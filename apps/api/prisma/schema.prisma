@@ -1,0 +1,241 @@
+// Research-based Learning Community · 数据模型
+// 设计依据：docs/研究性学习社区-系统架构设计-v1.md §4.3
+// 关键不变量：publication 是「身份」，revision 是不可变快照；评论挂在 publication 上。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id          String   @id @default(uuid())
+  handle      String   @unique
+  displayName String
+  role        String   @default("student")
+  createdAt   DateTime @default(now())
+
+  publications Publication[]
+  comments     Comment[]
+  reactions    Reaction[]
+  reposts      Repost[]
+  reports      Report[]
+  memberships  Membership[]
+  tokens       DeviceToken[]
+  invites      Invite[]
+}
+
+/// 组织：学校/机构/班级。当前决策是一级（组织 → 同学）。
+model Organization {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  members      Membership[]
+  publications Publication[]
+  invites      Invite[]
+}
+
+model Membership {
+  accountId String
+  orgId     String
+  role      String   @default("student")
+  joinedAt  DateTime @default(now())
+
+  account      Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@id([accountId, orgId])
+}
+
+/// 设备令牌：只存 sha256，明文只在颁发时返回一次。
+model DeviceToken {
+  id         String    @id @default(uuid())
+  tokenHash  String    @unique
+  accountId  String
+  label      String?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+}
+
+/// 一次性邀请码：短码、有有效期、用后作废。
+model Invite {
+  id        String    @id @default(uuid())
+  codeHash  String    @unique
+  accountId String
+  orgId     String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  account      Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+}
+
+model Domain {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  publications Publication[]
+}
+
+model Publication {
+  id              String   @id
+  authorId        String
+  domainId        String
+  orgId           String?
+  kind            String
+  title           String
+  slug            String
+  clientCardId    String
+  status          String   @default("published")
+  visibility      String   @default("public")
+  currentRevision Int      @default(1)
+  commentCount    Int      @default(0)
+  likeCount       Int      @default(0)
+  repostCount     Int      @default(0)
+  publishedAt     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  author    Account               @relation(fields: [authorId], references: [id])
+  domain    Domain                @relation(fields: [domainId], references: [id])
+  organization Organization?      @relation(fields: [orgId], references: [id])
+  revisions PublicationRevision[]
+  assets    Asset[]
+  variants  PublicationVariant[]
+  comments  Comment[]
+  reposts   Repost[]
+
+  @@unique([authorId, clientCardId])
+  @@index([domainId, publishedAt])
+  @@index([orgId, publishedAt])
+  @@index([status, visibility, publishedAt])
+}
+
+model PublicationRevision {
+  publicationId String
+  revision      Int
+  bodyMd        String
+  bodyHtml      String
+  frontmatter   Json
+  contentHash   String
+  createdAt     DateTime @default(now())
+
+  publication Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  assets      Asset[]
+
+  @@id([publicationId, revision])
+}
+
+model Asset {
+  id            String   @id @default(uuid())
+  publicationId String
+  revision      Int
+  kind          String
+  storageKey    String
+  mime          String
+  bytes         Int
+  sha256        String
+  createdAt     DateTime @default(now())
+
+  publication Publication         @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  revisionRef PublicationRevision @relation(fields: [publicationId, revision], references: [publicationId, revision], onDelete: Cascade)
+
+  @@index([publicationId])
+}
+
+model Comment {
+  id            String   @id @default(uuid())
+  publicationId String
+  parentId      String?
+  authorId      String
+  path          String
+  depth         Int
+  body          String
+  status        String   @default("visible")
+  createdAt     DateTime @default(now())
+  editedAt      DateTime?
+
+  publication Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  author      Account     @relation(fields: [authorId], references: [id])
+  parent      Comment?    @relation("CommentTree", fields: [parentId], references: [id])
+  children    Comment[]   @relation("CommentTree")
+
+  @@index([publicationId, createdAt])
+}
+
+model Reaction {
+  accountId  String
+  targetType String
+  targetId   String
+  kind       String
+  createdAt  DateTime @default(now())
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@id([accountId, targetType, targetId, kind])
+  @@index([targetType, targetId])
+}
+
+model Repost {
+  id            String   @id @default(uuid())
+  accountId     String
+  publicationId String
+  note          String?
+  createdAt     DateTime @default(now())
+
+  account     Account     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  publication Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+
+  @@index([publicationId])
+}
+
+model Report {
+  id         String   @id @default(uuid())
+  targetType String
+  targetId   String
+  reporterId String
+  reason     String
+  status     String   @default("open")
+  createdAt  DateTime @default(now())
+
+  reporter Account @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+}
+
+/// 科普版：按学生定义的读者画像各存一版。
+model PublicationVariant {
+  id                  String   @id @default(uuid())
+  publicationId       String
+  audienceName        String
+  audienceDescription String?
+  title               String
+  hook                String?
+  bodyMd              String
+  bodyHtml            String
+  quote               String?
+  action              String?
+  tags                String[] @default([])
+  figureMermaid       String?
+  aiAssisted          Boolean  @default(true)
+  createdAt           DateTime @default(now())
+
+  publication Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+
+  @@index([publicationId])
+}

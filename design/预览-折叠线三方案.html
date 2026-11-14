@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>研究性学习 · 折叠线三方案</title>
+<style>
+  :root {
+    --page-bg: #f1f2f5;
+    --page-ink: #1b1b1f;
+    --page-muted: #6b7280;
+    --page-line: #dcdce2;
+    --cream: #f7f3ea;
+    --ink: #1f1b16;
+    --muted: #8a8275;
+    --soft: #ddd6c8;
+    --softer: #ece5d6;
+    --accent: #c46a2d;
+    --indigo: #4f46e5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--page-bg);
+    color: var(--page-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.6;
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 14px 28px;
+    background: rgba(255,255,255,.94);
+    border-bottom: 1px solid var(--page-line);
+    backdrop-filter: blur(8px);
+  }
+  .topbar h1 { font-size: 15px; margin: 0; font-weight: 700; }
+  .topbar .hint { font-size: 12px; color: var(--page-muted); }
+
+  .stage {
+    display: grid;
+    grid-template-columns: repeat(3, 400px);
+    gap: 26px;
+    padding: 26px 28px 60px;
+    align-items: start;
+    overflow-x: auto;
+  }
+
+  .option-label {
+    font-size: 13px; font-weight: 700; margin: 0 0 4px 2px;
+  }
+  .option-sub { font-size: 11.5px; color: var(--page-muted); margin: 0 0 10px 2px; }
+
+  .side {
+    width: 380px;
+    background: #fff;
+    border: 1px solid var(--page-line);
+    border-radius: 12px;
+    padding: 14px 14px 18px;
+    box-shadow: 0 10px 30px rgba(15,23,42,.08);
+    font-size: 12.5px;
+  }
+  .side-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .side-title { font-weight: 700; font-size: 14px; }
+  .side-sub { font-size: 10.5px; color: var(--muted); }
+  .avatar {
+    margin-left: auto;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #eef2ff; color: var(--indigo);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; border: 1px solid var(--page-line);
+  }
+  .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 12px; }
+  .stat { background: #f6f7f9; border: 1px solid var(--page-line); border-radius: 9px; padding: 6px 2px; text-align: center; }
+  .stat b { display: block; font-size: 15px; line-height: 1.2; }
+  .stat span { font-size: 9.5px; color: var(--muted); }
+
+  .domain { margin-bottom: 12px; }
+  .domain-head { display: flex; align-items: flex-start; gap: 4px; }
+  .caret {
+    border: none; background: transparent; padding: 0; width: 16px;
+    color: var(--muted); cursor: pointer; font-size: 10px; line-height: 16px;
+    margin-top: 3px;
+  }
+  .dname { font-size: 13.5px; font-weight: 700; }
+  .dmeta { font-size: 10.5px; color: var(--muted); }
+  .acts { margin-left: auto; display: flex; gap: 4px; }
+  .chip {
+    font-size: 9.5px; border: 1px solid var(--page-line); border-radius: 6px;
+    padding: 1px 6px; color: #444; background: #fff; white-space: nowrap;
+  }
+  .chip.primary { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+
+  .lit-head { display: flex; align-items: flex-start; gap: 4px; padding: 5px 0 2px; }
+  .ltitle { font-size: 12px; font-weight: 600; flex: 1; }
+  .lmeta { font-size: 10px; color: var(--muted); }
+  .card-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
+  .card-name { flex: 1; font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ok { font-size: 9.5px; color: #16a34a; background: rgba(34,197,94,.12); border-radius: 999px; padding: 1px 7px; }
+  .pending { font-size: 9.5px; color: #b45309; background: rgba(245,158,11,.16); border-radius: 999px; padding: 1px 7px; }
+  .collapsed .children, .lit.collapsed .cards { display: none; }
+
+  /* ================= A 细线圆点 ================= */
+  .tree-a .children {
+    border-left: 1px solid var(--soft);
+    margin-left: 7px; padding-left: 14px; margin-top: 2px;
+  }
+  .tree-a .lit { position: relative; }
+  .tree-a .lit::before {
+    content: ""; position: absolute; left: -18px; top: 12px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #fff; border: 1px solid #bdb4a3;
+  }
+  .tree-a .cards {
+    border-left: 1px solid var(--softer);
+    margin-left: 4px; padding-left: 12px; margin-top: 2px;
+  }
+  .tree-a .card-row { position: relative; }
+  .tree-a .card-row::before {
+    content: ""; position: absolute; left: -12px; top: 50%;
+    width: 7px; height: 1px; background: var(--softer);
+  }
+  .tree-a .domain.collapsed .domain-head {
+    border-bottom: 1px dashed var(--soft); padding-bottom: 6px;
+  }
+
+  /* ================= B 折角连接 ================= */
+  .tree-b .children { margin-left: 6px; }
+  .tree-b .lit { position: relative; padding-left: 16px; }
+  .tree-b .lit::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+    border-left: 1px solid var(--soft);
+  }
+  .tree-b .lit:last-child::before { bottom: auto; height: 15px; }
+  .tree-b .lit::after {
+    content: ""; position: absolute; left: 0; top: 14px;
+    width: 11px; height: 1px; background: var(--soft);
+  }
+  .tree-b .cards { margin-left: 10px; }
+  .tree-b .card-row { position: relative; padding-left: 14px; }
+  .tree-b .card-row::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+    border-left: 1px solid var(--softer);
+  }
+  .tree-b .card-row::after {
+    content: ""; position: absolute; left: 0; top: 50%;
+    width: 9px; height: 1px; background: var(--softer);
+  }
+  .tree-b .card-row:last-child::before { bottom: auto; height: 50%; }
+  .tree-b .domain.collapsed .dname::after {
+    content: " ⋯"; color: var(--soft); font-weight: 400;
+  }
+
+  /* ================= C 色带归属 ================= */
+  .tree-c .domain { border-left: 4px solid var(--indigo); padding-left: 10px; }
+  .tree-c .domain.collapsed { border-left-width: 12px; }
+  .tree-c .lit {
+    border-left: 3px solid #e6e0d2;
+    margin-left: 8px; padding-left: 10px; margin-top: 4px;
+  }
+  .tree-c .lit:hover { border-left-color: var(--indigo); }
+  .tree-c .lit.collapsed { border-left-style: dashed; }
+  .tree-c .cards {
+    border-left: 2px solid #f0e9db;
+    margin-left: 6px; padding-left: 10px; margin-top: 2px;
+  }
+  .tree-c .domain.collapsed .domain-head { opacity: .92; }
+
+  .legend {
+    margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--page-line);
+    font-size: 11px; color: var(--page-muted);
+  }
+  .pros {
+    margin: 10px 0 0 2px; padding-left: 16px; font-size: 11.5px; color: #444;
+  }
+  .pros li { margin: 3px 0; }
+  .pros b { color: #111; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>研究性学习 · 右侧栏折叠线：三套方案</h1>
+  <span class="hint">每列都展示了「展开 + 折叠」两种状态，重点看层级归属是否一眼可读</span>
+</div>
+
+<div class="stage">
+
+  <!-- ================= 方案 A ================= -->
+  <section>
+    <p class="option-label">A · 细线圆点</p>
+    <p class="option-sub">1px 竖线 + 节点圆点，最轻、最像文件树</p>
+    <div class="side tree-a">
+      <div class="side-head">
+        <div><div class="side-title">研究性学习</div><div class="side-sub">总览</div></div>
+        <div class="avatar">邓</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>2</b><span>领域</span></div>
+        <div class="stat"><b>7</b><span>文献</span></div>
+        <div class="stat"><b>4</b><span>卡片</span></div>
+        <div class="stat"><b>4</b><span>精读</span></div>
+      </div>
+
+      <div class="domain">
+        <div class="domain-head">
+          <button class="caret">▾</button>
+          <div><div class="dname">情绪</div><div class="dmeta">7 篇 · 4 张</div></div>
+          <div class="acts"><span class="chip">生成综述</span><span class="chip">＋文献</span></div>
+        </div>
+        <div class="children">
+          <div class="lit">
+            <div class="lit-head">
+              <button class="caret">▾</button>
+              <div class="ltitle">The voice of emotion…</div><div class="lmeta">2 张</div>
+            </div>
+            <div class="cards">
+              <div class="card-row"><span class="card-name">测试卡片</span><span class="ok">已发布</span></div>
+              <div class="card-row"><span class="card-name">声音里的情绪线索</span><span class="pending">待发布</span></div>
+            </div>
+          </div>
+          <div class="lit collapsed">
+            <div class="lit-head">
+              <button class="caret">▸</button>
+              <div class="ltitle">Core affect and…</div><div class="lmeta">3 张</div>
+            </div>
+          </div>
+          <div class="lit collapsed">
+            <div class="lit-head">
+              <button class="caret">▸</button>
+              <div class="ltitle">Constants across cultures…</div><div class="lmeta">1 张</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="domain collapsed">
+        <div class="domain-head">
+          <button class="caret">▸</button>
+          <div><div class="dname">课程与教学论</div><div class="dmeta">0 篇 · 0 张</div></div>
+          <div class="acts"><span class="chip primary">生成综述</span></div>
+        </div>
+      </div>
+    </div>
+    <ul class="pros">
+      <li><b>优点</b>：线条最轻，不抢内容；圆点给出「这里可点开」的暗示；卡片层用更浅的线，层级一目了然。</li>
+      <li><b>代价</b>：归属感不如折角线强；圆点在小字号下需要控制尺寸，否则显脏。</li>
+    </ul>
+  </section>
+
+  <!-- ================= 方案 B ================= -->
+  <section>
+    <p class="option-label">B · 折角连接线</p>
+    <p class="option-sub">├─ / └─ 经典目录树，归属感最强</p>
+    <div class="side tree-b">
+      <div class="side-head">
+        <div><div class="side-title">研究性学习</div><div class="side-sub">总览</div></div>
+        <div class="avatar">邓</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>2</b><span>领域</span></div>
+        <div class="stat"><b>7</b><span>文献</span></div>
+        <div class="stat"><b>4</b><span>卡片</span></div>
+        <div class="stat"><b>4</b><span>精读</span></div>
+      </div>
+
+      <div class="domain">
+        <div class="domain-head">
+          <button class="caret">▾</button>
+          <div><div class="dname">情绪</div><div class="dmeta">7 篇 · 4 张</div></div>
+          <div class="acts"><span class="chip">生成综述</span><span class="chip">＋文献</span></div>
+        </div>
+        <div class="children">
+          <div class="lit">
+            <div class="lit-head">
+              <button class="caret">▾</button>
+              <div class="ltitle">The voice of emotion…</div><div class="lmeta">2 张</div>
+            </div>
+            <div class="cards">
+              <div class="card-row"><span class="card-name">测试卡片</span><span class="ok">已发布</span></div>
+              <div class="card-row"><span class="card-name">声音里的情绪线索</span><span class="pending">待发布</span></div>
+            </div>
+          </div>
+          <div class="lit collapsed">
+            <div class="lit-head">
+              <button class="caret">▸</button>
+              <div class="ltitle">Core affect and…</div><div class="lmeta">3 张</div>
+            </div>
+          </div>
+          <div class="lit collapsed">
+            <div class="lit-head">
+              <button class="caret">▸</button>
+              <div class="ltitle">Constants across cultures…</div><div class="lmeta">1 张</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="domain collapsed">
+        <div class="domain-head">
+          <button class="caret">▸</button>
+          <div><div class="dname">课程与教学论</div><div class="dmeta">0 篇 · 0 张</div></div>
+          <div class="acts"><span class="chip primary">生成综述</span></div>
+        </div>
+      </div>
+    </div>
+    <ul class="pros">
+      <li><b>优点</b>：谁属于谁最清楚，像代码目录；折叠后父级末尾的 ⋯ 也明示"还有内容"。</li>
+      <li><b>代价</b>：线条多，视觉更"工程师"；侧栏窄时折角容易顶到文字。</li>
+    </ul>
+  </section>
+
+  <!-- ================= 方案 C ================= -->
+  <section>
+    <p class="option-label">C · 色带归属</p>
+    <p class="option-sub">用左侧强调条代替细线，和卡片工作台风格最搭</p>
+    <div class="side tree-c">
+      <div class="side-head">
+        <div><div class="side-title">研究性学习</div><div class="side-sub">总览</div></div>
+        <div class="avatar">邓</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>2</b><span>领域</span></div>
+        <div class="stat"><b>7</b><span>文献</span></div>
+        <div class="stat"><b>4</b><span>卡片</span></div>
+        <div class="stat"><b>4</b><span>精读</span></div>
+      </div>
+
+      <div class="domain">
+        <div class="domain-head">
+          <button class="caret">▾</button>
+          <div><div class="dname">情绪</div><div class="dmeta">7 篇 · 4 张</div></div>
+          <div class="acts"><span class="chip">生成综述</span><span class="chip">＋文献</span></div>
+        </div>
+        <div class="children">
+          <div class="lit">
+            <div class="lit-head">
+              <button class="caret">▾</button>
+              <div class="ltitle">The voice of emotion…</div><div class="lmeta">2 张</div>
+            </div>
+            <div class="cards">
+              <div class="card-row"><span class="card-name">测试卡片</span><span class="ok">已发布</span></div>
+              <div class="card-row"><span class="card-name">声音里的情绪线索</span><span class="pending">待发布</span></div>
+            </div>
+          </div>
+          <div class="lit collapsed">
+            <div class="lit-head">
+              <button class="caret">▸</button>
+              <div class="ltitle">Core affect and…</div><div class="lmeta">3 张</div>
+            </div>
+          </div>
+          <div class="lit collapsed">
+            <div class="lit-head">
+              <button class="caret">▸</button>
+              <div class="ltitle">Constants across cultures…</div><div class="lmeta">1 张</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="domain collapsed">
+        <div class="domain-head">
+          <button class="caret">▸</button>
+          <div><div class="dname">课程与教学论</div><div class="dmeta">0 篇 · 0 张</div></div>
+          <div class="acts"><span class="chip primary">生成综述</span></div>
+        </div>
+      </div>
+    </div>
+    <ul class="pros">
+      <li><b>优点</b>：和门户/插件的卡片工作台风格统一；色带本身表示"归属"，折叠时变成粗块，状态很显眼。</li>
+      <li><b>代价</b>：色带占横向空间，层级深时缩进更紧；颜色需要克制，否则像标签墙。</li>
+    </ul>
+  </section>
+</div>
+
+</body>
+</html>

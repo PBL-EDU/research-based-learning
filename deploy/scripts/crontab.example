@@ -1,0 +1,20 @@
+# /etc/cron.d/rlc —— 由 install 步骤复制过去：
+#   sudo cp scripts/crontab.example /etc/cron.d/rlc
+#   sudo chmod 644 /etc/cron.d/rlc && sudo chown root:root /etc/cron.d/rlc
+#
+# 注意：/etc/cron.d 的格式比 crontab -e 多一个「以哪个用户运行」字段。
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=""
+
+# 每天 03:00  PostgreSQL 备份（加密后上传 COS）
+0  3 * * *   deploy  flock -n /var/lock/rlc-pg.lock      /opt/rlc/scripts/20-backup-pg.sh      >> /var/log/rlc/backup.log 2>&1
+
+# 每周日 03:30  MinIO 资产备份
+30 3 * * 0   deploy  flock -n /var/lock/rlc-assets.lock  /opt/rlc/scripts/21-backup-assets.sh  >> /var/log/rlc/backup.log 2>&1
+
+# 每天 04:00  体检（有 FAIL 才输出并发告警）
+0  4 * * *   deploy  flock -n /var/lock/rlc-health.lock  /opt/rlc/scripts/40-healthcheck.sh --quiet >> /var/log/rlc/health.log 2>&1
+
+# 每月 1 号 04:15  恢复演练（这才是备份是否可用的唯一证据）
+15 4 1 * *   deploy  flock -n /var/lock/rlc-drill.lock   /opt/rlc/scripts/30-restore-pg.sh --drill >> /var/log/rlc/drill.log 2>&1
