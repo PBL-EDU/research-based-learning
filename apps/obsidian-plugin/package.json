@@ -1,6 +1,6 @@
 {
   "name": "@rlc/obsidian-plugin",
-  "version": "0.17.5",
+  "version": "0.17.9",
   "private": true,
   "description": "Research-based Learning Community · Obsidian 插件",
   "main": "main.js",

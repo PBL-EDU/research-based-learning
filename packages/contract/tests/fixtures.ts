@@ -52,9 +52,13 @@ export function makePracticeCard(overrides: Record<string, unknown> = {}): Recor
     tags: ["实践"],
     plan: {
       goal: "把两课时的教案改成一个单元设计",
-      steps: ["提取大概念", "设计表现性任务", "写两课时的实施脚本"],
+      steps: [
+        { text: "提取大概念" },
+        { text: "设计表现性任务" },
+        { text: "写两课时的实施脚本" },
+      ],
       resources: ["课程标准"],
-      schedule: "两周",
+      scheduledFor: "2026-11-20",
       successCriteria: ["能说清单元的大概念与表现性任务"],
     },
     process: [],

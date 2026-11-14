@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  deepReadDraftMessages,
-  mermaidMessages,
-  parseDraftResult,
-  validateMermaid,
-} from "../src/core/prompts";
+import { deepReadDraftMessages, parseDraftResult } from "../src/core/prompts";
 import { extractJson } from "../src/core/json";
 
 describe("AI 起草的输入契约", () => {
@@ -50,29 +45,6 @@ describe("AI 起草的输入契约", () => {
       actions: [{ action: "做一件事" }],
     });
     expect(result.conceptLevel).toBe("中");
-  });
-});
-
-describe("Mermaid 生成", () => {
-  it("接受 flowchart 并去掉围栏", () => {
-    expect(validateMermaid("```mermaid\nflowchart TD\n  A-->B\n```")).toBe(
-      "flowchart TD\n  A-->B",
-    );
-  });
-
-  it("拒绝解释性文字冒充代码", () => {
-    expect(() => validateMermaid("这是一张流程图，展示……")).toThrow(/Mermaid/);
-  });
-
-  it("拒绝超长代码", () => {
-    expect(() => validateMermaid(`flowchart TD\n${"A-->B\n".repeat(1000)}`)).toThrow(/过长/);
-  });
-
-  it("生成提示词要求只输出代码", () => {
-    const joined = mermaidMessages({ title: "t", quote: "q", insight: "i", meaning: "m" })
-      .map((message) => message.content)
-      .join("\n");
-    expect(joined).toContain("只输出 Mermaid 代码");
   });
 });
 

@@ -60,6 +60,7 @@ export class SkimModal extends Modal {
     });
 
     const setting = new Setting(contentEl).setName("摘要 / 正文片段");
+    setting.settingEl.addClass("rlc-field-stacked");
     setting.addTextArea((area) => {
       area.inputEl.rows = 8;
       area.inputEl.addClass("rlc-skim-input");

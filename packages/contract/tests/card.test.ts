@@ -107,6 +107,7 @@ describe("parseCard · 实践卡片 pc-card@1", () => {
 
   it("过程记录是追加型数组，可含多条", () => {
     const entry = {
+      entryId: "8c2d3f4a-5b6c-4d7e-8f90-123456789abc",
       date: "2026-11-13T10:00:00+08:00",
       what: "提取了大概念",
       obstacle: "总是滑回课文清单",

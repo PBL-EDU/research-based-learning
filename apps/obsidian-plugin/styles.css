@@ -426,16 +426,6 @@
   color: var(--text-muted);
 }
 
-.rlc-mermaid-preview {
-  background: var(--background-secondary);
-  border-radius: 8px;
-  padding: 0.75em;
-  font-size: 0.8em;
-  max-height: 200px;
-  overflow: auto;
-  white-space: pre-wrap;
-}
-
 .rlc-skim-input {
   width: 420px;
   font-family: var(--font-text);
@@ -580,4 +570,284 @@
   border-radius: 10px;
   display: block;
   margin: 8px auto;
+}
+
+/* 设置页左右留白 */
+.rlc-settings {
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* 表单改为上下布局：标签在上，输入框占满整行 */
+.rlc-field-stacked {
+  display: block;
+}
+
+.rlc-field-stacked .setting-item-info {
+  margin-bottom: 4px;
+}
+
+.rlc-field-stacked .setting-item-control {
+  width: 100%;
+}
+
+.rlc-field-stacked .setting-item-control input,
+.rlc-field-stacked .setting-item-control textarea {
+  width: 100%;
+}
+
+/* ===== 实践卡：颜色与顶部日历 ===== */
+.rlc-overview {
+  --rlc-practice: #2f9e83;
+  --rlc-practice-weak: color-mix(in srgb, var(--rlc-practice) 14%, transparent);
+  --rlc-danger: #c0504d;
+}
+
+.rlc-practice-top {
+  margin: 6px 0 14px;
+  padding: 10px;
+  border: 1px solid var(--rlc-line);
+  border-radius: 10px;
+  background: var(--rlc-surface);
+}
+
+.rlc-calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.rlc-calendar-title {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rlc-calendar-nav {
+  background: none;
+  border: none;
+  color: var(--rlc-muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 6px;
+}
+
+.rlc-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.rlc-calendar-weekday {
+  text-align: center;
+  font-size: 10px;
+  color: var(--rlc-muted);
+  padding-bottom: 2px;
+}
+
+.rlc-calendar-day {
+  position: relative;
+  text-align: center;
+  font-size: 11px;
+  padding: 5px 0 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.rlc-calendar-day:hover {
+  background: var(--rlc-accent-weak);
+}
+
+.rlc-calendar-today {
+  background: var(--rlc-accent-weak);
+  font-weight: 700;
+}
+
+.rlc-calendar-active {
+  outline: 1px solid var(--rlc-accent);
+}
+
+.rlc-calendar-blank {
+  visibility: hidden;
+}
+
+.rlc-calendar-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 3px;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+}
+
+.rlc-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.rlc-dot-plan {
+  border: 1px solid var(--rlc-practice);
+  background: transparent;
+}
+
+.rlc-dot-record {
+  background: var(--rlc-practice);
+}
+
+.rlc-dot-overdue {
+  background: var(--rlc-danger);
+}
+
+.rlc-today {
+  margin-top: 10px;
+  border-top: 1px dashed var(--rlc-line);
+  padding-top: 8px;
+}
+
+.rlc-today-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rlc-muted);
+  margin-bottom: 4px;
+}
+
+.rlc-today-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 2px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.rlc-today-row:hover {
+  background: var(--rlc-accent-weak);
+}
+
+.rlc-today-name {
+  flex: 1;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rlc-practice-status {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.rlc-practice-planned {
+  color: var(--rlc-muted);
+  border-color: var(--rlc-line);
+}
+
+.rlc-practice-active {
+  color: var(--rlc-practice);
+  border-color: color-mix(in srgb, var(--rlc-practice) 40%, transparent);
+}
+
+.rlc-practice-overdue {
+  color: var(--rlc-danger);
+  border-color: color-mix(in srgb, var(--rlc-danger) 40%, transparent);
+}
+
+.rlc-practice-done {
+  color: var(--rlc-muted);
+  border-color: var(--rlc-line);
+}
+
+/* ===== 文献内的分组与颜色 ===== */
+.rlc-card-group {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--rlc-muted);
+  margin: 8px 0 2px;
+}
+
+.rlc-group-practice {
+  color: var(--rlc-practice);
+}
+
+.rlc-card-list-practice {
+  border-left-color: color-mix(in srgb, var(--rlc-practice) 35%, transparent);
+}
+
+.rlc-card-row-practice .rlc-card-title {
+  font-weight: 500;
+}
+
+.rlc-practice-caret {
+  background: none;
+  border: none;
+  color: var(--rlc-muted);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0 2px;
+}
+
+.rlc-practice-body {
+  margin: 2px 0 8px 18px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--rlc-surface);
+  border: 1px solid var(--rlc-line);
+}
+
+.rlc-practice-goal {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.rlc-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 2px 0;
+}
+
+.rlc-step input {
+  margin: 0;
+}
+
+.rlc-step-done {
+  text-decoration: line-through;
+  color: var(--rlc-muted);
+}
+
+.rlc-timeline {
+  margin-top: 8px;
+  border-top: 1px dashed var(--rlc-line);
+  padding-top: 6px;
+}
+
+.rlc-timeline-item {
+  font-size: 12px;
+  padding: 4px 0;
+  border-bottom: 1px dotted var(--rlc-line);
+}
+
+.rlc-timeline-date {
+  color: var(--rlc-practice);
+  margin-right: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rlc-timeline-what {
+  font-weight: 500;
+}
+
+.rlc-practice-summary {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--rlc-practice);
 }
