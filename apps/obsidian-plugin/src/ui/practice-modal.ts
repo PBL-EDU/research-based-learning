@@ -61,13 +61,13 @@ export class PracticeCardModal extends Modal {
 
     this.areaRow("目标", "做完这件事，什么会不一样？", this.goal, (value) => {
       this.goal = value;
-    }, 2);
+    }, 1);
     this.areaRow("步骤", "一行一步，按顺序写", this.steps, (value) => {
       this.steps = value;
-    }, 5);
+    }, 4);
     this.areaRow("成功标准", "一行一条：怎么算做到了（至少一条）", this.criteria, (value) => {
       this.criteria = value;
-    }, 3);
+    }, 2);
     this.areaRow("资源（可选）", "需要的人、材料、工具，一行一个", this.resources, (value) => {
       this.resources = value;
     }, 2);

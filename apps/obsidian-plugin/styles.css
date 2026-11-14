@@ -503,10 +503,8 @@
 
 @media (max-width: 420px) {
   .rlc-stats {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 4px;
-  margin-bottom: 8px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
 
 /* ---------- 折叠 ---------- */
@@ -577,8 +575,27 @@
 
 /* 设置页左右留白 */
 .rlc-settings {
-  padding-left: 24px;
-  padding-right: 24px;
+  padding-left: 32px !important;
+  padding-right: 32px !important;
+  padding-bottom: 48px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.rlc-settings .setting-item {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.rlc-settings .setting-item-control {
+  min-width: 0;
+}
+
+.rlc-settings input,
+.rlc-settings textarea,
+.rlc-settings select {
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 /* 表单改为上下布局：标签在上，输入框占满整行 */

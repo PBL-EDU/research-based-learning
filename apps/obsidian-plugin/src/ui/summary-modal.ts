@@ -40,7 +40,7 @@ export class PracticeSummaryModal extends Modal {
 
     this.areaRow("结果", "实际发生了什么", this.outcome, (value) => {
       this.outcome = value;
-    }, 3);
+    }, 2);
     this.areaRow("变化（可选）", "和计划相比，哪里不一样", this.delta, (value) => {
       this.delta = value;
     }, 2);

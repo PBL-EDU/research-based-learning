@@ -100,19 +100,19 @@ export class DeepReadCardModal extends Modal {
     contentEl.createEl("h4", { text: "Aha 五点" });
     this.areaRow("原文摘录", "只粘贴原文，不改写；上限 300 字（版权红线）", this.state.quote, (value) => {
       this.state.quote = value;
-    }, 3);
+    }, 2);
     this.areaRow("我的体验", "一个具体的生活/学习场景，不要泛泛而谈", this.state.experience, (value) => {
       this.state.experience = value;
-    }, 3);
+    }, 2);
     this.areaRow("Aha", "它推翻了什么默认假设？「原来我以为…，现在发现…」", this.state.insight, (value) => {
       this.state.insight = value;
-    }, 3);
+    }, 2);
     this.areaRow("新启发", "由此产生的新想法或新问题", this.state.inspiration, (value) => {
       this.state.inspiration = value;
-    }, 3);
+    }, 2);
     this.areaRow("对生活的意义", "改变了什么观念，或让你能做什么", this.state.meaning, (value) => {
       this.state.meaning = value;
-    }, 3);
+    }, 2);
 
     new Setting(contentEl)
       .setName("这个 Aha 的分量")
