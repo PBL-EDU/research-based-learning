@@ -82,7 +82,13 @@ export class PracticeService {
       const template = this.app.vault.getAbstractFileByPath(config.template);
       if (template instanceof TFile) {
         const content = await this.app.vault.read(template);
-        base = content.includes(SECTION) ? content : `${content.replace(/\s*$/, "")}\n\n${SECTION}\n`;
+        const now = new Date();
+        const pad = (value: number) => String(value).padStart(2, "0");
+        const filled = content
+          .replace(/\{\{date\}\}/g, this.formatDate(now, config.format))
+          .replace(/\{\{time\}\}/g, `${pad(now.getHours())}:${pad(now.getMinutes())}`)
+          .replace(/\{\{title\}\}/g, path.split("/").pop()?.replace(/\.md$/, "") ?? "");
+        base = filled.includes(SECTION) ? filled : `${filled.replace(/\s*$/, "")}\n\n${SECTION}\n`;
       }
     }
     return this.app.vault.create(path, base);
