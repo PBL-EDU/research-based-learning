@@ -51,9 +51,6 @@ importers:
       '@types/node':
         specifier: ^26.6.6
         version: 26.6.6
-      builtin-modules:
-        specifier: ^5.5.0
-        version: 5.5.0
       esbuild:
         specifier: ^0.28.2
         version: 0.28.2
@@ -1036,10 +1033,6 @@ packages:
     resolution: {integrity: sha512-QYph+vfurmaxhNwi9FprfmtkT5cx2Keg8FzZ0vnjO8ukscIybVyZGMFwdllKGlTI6qyU8ck43OM9UXh+IFJihQ==}
     engines: {node: '>=6.0.0'}
     hasBin: true
-
-  builtin-modules@5.5.0:
-    resolution: {integrity: sha512-2uhx+Lkzc2fnAcNEpzbJziSzwdv6cJjxxsi9oByBhSuy2wffAPzmazVDiWJk2xDKULFONl5gNOEOLOupQ8gsPg==}
-    engines: {node: '>=18.20'}
 
   c12@3.1.0:
     resolution: {integrity: sha512-uWoS8OU1MEIsOv8p/5a82c3H31LsWVR5qiyXVfBNOzfffjUWtPnhAb4BYI2uG2HfGmZmFjCtui5XNWaps+iFuw==}
@@ -2574,8 +2567,6 @@ snapshots:
       fastq: 1.20.3
 
   baseline-browser-mapping@2.11.37: {}
-
-  builtin-modules@5.5.0: {}
 
   c12@3.1.0:
     dependencies:
