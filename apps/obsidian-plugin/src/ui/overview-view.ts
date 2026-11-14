@@ -340,7 +340,7 @@ export class ResearchOverviewView extends ItemView {
 
     const hasPdf = Boolean(literature.pdfPath);
     const download = actions.createEl("button", {
-      text: hasPdf ? "1 原文已下载" : "1 下载原文",
+      text: hasPdf ? "1 已下载" : "1 原文",
       cls: "rlc-btn rlc-btn-ghost",
     });
     download.disabled = hasPdf || !literature.doi;
@@ -362,14 +362,14 @@ export class ResearchOverviewView extends ItemView {
     skim.addEventListener("click", () => void this.rlc.openSkimModal(literature));
 
     const addCard = actions.createEl("button", {
-      text: "4 ＋精读卡片",
+      text: "4 精读",
       cls: "rlc-btn rlc-btn-primary",
     });
     addCard.title = "为这篇文献新建精读卡片";
     addCard.addEventListener("click", () => this.rlc.openCardModal(this.contextFor(literature)));
 
     const addPractice = actions.createEl("button", {
-      text: "5 ＋实践卡",
+      text: "5 实践",
       cls: "rlc-btn rlc-btn-ghost",
     });
     addPractice.title = "新建实践卡：计划 → 过程 → 总结";

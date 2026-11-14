@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    研究性学习社区 · 视觉主题 B「卡片工作台」
    两端共用同一套设计语言：圆角卡片、轻阴影、靛蓝强调色、标签胶囊。
    插件内用 Obsidian 变量做底色适配（明/暗主题自动跟随）。
@@ -113,29 +113,30 @@
 /* ---------- 统计 ---------- */
 .rlc-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  margin-bottom: 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 8px;
 }
 
 .rlc-stat {
   background: var(--rlc-surface-2);
   border: 1px solid var(--rlc-line);
-  border-radius: 10px;
-  padding: 8px 4px;
+  border-radius: 8px;
+  padding: 4px 2px 5px;
   text-align: center;
+  line-height: 1.15;
 }
 
 .rlc-stat-value {
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.1;
 }
 
 .rlc-stat-label {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--rlc-muted);
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 /* ---------- 待发布 ---------- */
@@ -267,20 +268,20 @@
 
 .rlc-lit-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3px;
   width: 100%;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .rlc-lit-actions .rlc-btn {
-  font-size: 10px;
-  padding: 3px 2px;
+  font-size: 9.5px;
+  padding: 2px 1px;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  border-radius: 7px;
+  border-radius: 6px;
 }
 
 .rlc-lit-actions .rlc-btn:disabled {
@@ -502,8 +503,10 @@
 
 @media (max-width: 420px) {
   .rlc-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 8px;
 }
 
 /* ---------- 折叠 ---------- */
@@ -604,8 +607,8 @@
 }
 
 .rlc-practice-top {
-  margin: 6px 0 14px;
-  padding: 10px;
+  margin: 4px 0 10px;
+  padding: 8px;
   border: 1px solid var(--rlc-line);
   border-radius: 10px;
   background: var(--rlc-surface);
@@ -615,11 +618,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .rlc-calendar-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -641,7 +644,7 @@
 
 .rlc-calendar-weekday {
   text-align: center;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--rlc-muted);
   padding-bottom: 2px;
 }
@@ -649,8 +652,8 @@
 .rlc-calendar-day {
   position: relative;
   text-align: center;
-  font-size: 11px;
-  padding: 5px 0 11px;
+  font-size: 10px;
+  padding: 3px 0 8px;
   border-radius: 6px;
   cursor: pointer;
   user-select: none;
@@ -677,15 +680,15 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 3px;
+  bottom: 2px;
   display: flex;
   justify-content: center;
   gap: 2px;
 }
 
 .rlc-dot {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   display: inline-block;
 }
@@ -704,9 +707,9 @@
 }
 
 .rlc-today {
-  margin-top: 10px;
+  margin-top: 6px;
   border-top: 1px dashed var(--rlc-line);
-  padding-top: 8px;
+  padding-top: 6px;
 }
 
 .rlc-today-title {
