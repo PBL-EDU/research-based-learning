@@ -18,7 +18,7 @@
   /* 折叠线：比主边框更浅，用来表示「属于」而不是「分隔」。 */
   --rlc-line-soft: color-mix(in srgb, var(--rlc-line) 55%, transparent);
 
-  padding: 4px 2px 24px;
+  padding: 6px 8px 24px;
   color: var(--rlc-ink);
 }
 
@@ -155,8 +155,8 @@
 
 /* ---------- 领域卡 ---------- */
 .rlc-domain-card {
-  background: var(--rlc-surface-2);
-  border: 1px solid var(--rlc-line);
+  background: color-mix(in srgb, var(--text-normal) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-normal) 16%, transparent);
   border-radius: var(--rlc-radius);
   padding: 12px;
   margin-bottom: 12px;
@@ -170,17 +170,17 @@
 }
 
 .rlc-domain-info {
-  order: 1;
+  order: 2;
   flex: 1;
 }
 
-.rlc-domain-actions {
-  order: 2;
+.rlc-domain-head .rlc-caret {
+  order: 1;
+  margin-right: 4px;
 }
 
-.rlc-domain-head .rlc-caret {
+.rlc-domain-actions {
   order: 3;
-  margin-left: 2px;
 }
 
 .rlc-domain-info {
@@ -219,9 +219,9 @@
   position: relative;
   padding: 8px 8px 10px;
   margin-top: 6px;
-  border: 1px solid var(--rlc-line);
+  border: 1px solid color-mix(in srgb, var(--text-normal) 12%, transparent);
   border-radius: 8px;
-  background: var(--rlc-surface);
+  background: color-mix(in srgb, var(--text-normal) 2%, transparent);
 }
 
 .rlc-lit-card:hover {
@@ -551,7 +551,7 @@
 .rlc-domain-body {
   margin-top: 8px;
   margin-left: 0;
-  padding-left: 18px;
+  padding-left: 22px;
   border-left: 1px solid color-mix(in srgb, var(--text-normal) 18%, transparent);
 }
 
@@ -602,8 +602,8 @@
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 6px;
-  padding-left: 0;
-  padding-right: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
 }
 
 .rlc-settings .setting-item-info {
@@ -1025,4 +1025,34 @@
 /* 领域之间再拉开一点 */
 .rlc-domain-card + .rlc-domain-card {
   margin-top: 14px;
+}
+
+/* 日历高对比层次 */
+.rlc-calendar-weekdays {
+  background: color-mix(in srgb, var(--text-normal) 8%, transparent) !important;
+  border-radius: 6px;
+}
+
+.rlc-calendar-grid {
+  background: color-mix(in srgb, var(--text-normal) 4%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--text-normal) 10%, transparent);
+}
+
+.rlc-calendar-day {
+  background: color-mix(in srgb, var(--text-normal) 2%, transparent);
+  border: 1px solid transparent;
+}
+
+.rlc-calendar-day:hover {
+  border-color: color-mix(in srgb, var(--text-normal) 16%, transparent);
+}
+
+.rlc-calendar-today {
+  background: var(--rlc-accent-weak) !important;
+  border-color: var(--rlc-accent) !important;
+}
+
+.rlc-dot {
+  width: 5px;
+  height: 5px;
 }
