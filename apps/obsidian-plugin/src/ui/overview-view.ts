@@ -347,14 +347,24 @@ export class ResearchOverviewView extends ItemView {
 
     const dots = actions.createDiv({ cls: "rlc-phase-dots" });
     progress.forEach((value, index) => {
+      // 原文 / 整理 / 略读 是一次性环节，完成后禁止再点；
+      // 精读与实践可以产出多张，保持可点。
+      const locked = value && index <= 2;
       const dot = dots.createEl("button", {
-        cls: "rlc-phase-dot" + (value ? " rlc-dot-done" : "") + (index === nextIndex ? " rlc-dot-current" : ""),
+        cls:
+          "rlc-phase-dot" +
+          (value ? " rlc-dot-done" : "") +
+          (index === nextIndex ? " rlc-dot-current" : "") +
+          (locked ? " rlc-phase-locked" : ""),
         attr: { "aria-label": `第 ${index + 1} 步：${LIT_STEP_LABELS[index]}` },
       });
-      dot.title = `${index + 1} ${LIT_STEP_LABELS[index]}`;
+      dot.disabled = locked;
+      dot.title = locked
+        ? `${index + 1} ${LIT_STEP_LABELS[index]}（已完成）`
+        : `${index + 1} ${LIT_STEP_LABELS[index]}`;
       dot.addEventListener("click", (event) => {
         event.stopPropagation();
-        this.runLiteratureStep(literature, index);
+        if (!locked) this.runLiteratureStep(literature, index);
       });
     });
     actions.createSpan({ text: `${done}/5`, cls: "rlc-phase-count" });
@@ -744,12 +754,17 @@ export class ResearchOverviewView extends ItemView {
 
   private showLiteratureMenu(event: MouseEvent, literature: LiteratureNode): void {
     const menu = new Menu();
+    const progress = this.literatureProgress(literature);
     LIT_STEP_LABELS.forEach((label, index) => {
-      menu.addItem((item) =>
+      const locked = progress[index] === true && index <= 2;
+      menu.addItem((item) => {
         item
           .setTitle(`${index + 1} ${label}`)
-          .onClick(() => this.runLiteratureStep(literature, index)),
-      );
+          .setDisabled(locked)
+          .onClick(() => {
+            if (!locked) this.runLiteratureStep(literature, index);
+          });
+      });
     });
     menu.showAtMouseEvent(event);
   }

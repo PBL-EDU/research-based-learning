@@ -132,6 +132,27 @@ export default class RlcPlugin extends Plugin {
       void this.maybeRemindPractice();
     });
 
+    // 编辑器右键：在文献笔记里选中文字 → 新建精读卡片并自动填摘录。
+    this.registerEvent(
+      this.app.workspace.on("editor-menu", (menu, editor, view) => {
+        const file = view.file;
+        if (!file) return;
+        const literature = this.index.listLiteratures().find((item) => item.notePath === file.path);
+        if (!literature) return;
+        const selection = editor.getSelection().trim();
+        menu.addItem((item) =>
+          item
+            .setTitle(selection ? "新建精读卡片（用选中文字）" : "新建精读卡片")
+            .setIcon("notebook-pen")
+            .onClick(() =>
+              this.openCardModal(this.contextFrom(literature), {
+                ...(selection ? { initialQuote: selection.slice(0, 300) } : {}),
+              }),
+            ),
+        );
+      }),
+    );
+
     // 右键文件：文献笔记可略读/建卡，卡片可发布。
     this.registerEvent(
       this.app.workspace.on("file-menu", (menu, file) => {
@@ -265,7 +286,7 @@ export default class RlcPlugin extends Plugin {
     if (file instanceof TFile) await this.openPosterModal(file);
   }
 
-  openCardModal(context: CardContext): void {
+  openCardModal(context: CardContext, options?: { initialQuote?: string }): void {
     const notePath = `领域/${context.domain}/文献/${context.folder}/${context.folder}.md`;
     new DeepReadCardModal(this.app, this, context, () => {
       // 新建卡片后展开它所在的文献与领域，否则学生以为没保存成功。
@@ -274,7 +295,7 @@ export default class RlcPlugin extends Plugin {
         (name) => name !== context.domain,
       );
       void this.saveSettings().then(() => this.refreshOverview());
-    }).open();
+    }, options?.initialQuote).open();
   }
 
   /** 实践卡：从 Aha 立项（带 linkedCardPath）或从文献直接建。 */

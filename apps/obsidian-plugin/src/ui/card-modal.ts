@@ -60,14 +60,16 @@ export class DeepReadCardModal extends Modal {
     private readonly rlc: RlcPlugin,
     private readonly context: CardContext,
     private readonly onSaved?: () => void,
+    private readonly initialQuote?: string,
   ) {
     super(app);
   }
 
   override onOpen(): void {
     this.modalEl.addClass("rlc-modal");
-    // 如果文献笔记里选中了原文，自动填进原文摘录。
-    const selection = this.app.workspace.activeEditor?.editor?.getSelection()?.trim();
+    // 优先用调用方显式传入的选区（编辑器右键），其次读当前活动编辑器。
+    const explicit = this.initialQuote?.trim();
+    const selection = explicit || this.app.workspace.activeEditor?.editor?.getSelection()?.trim();
     if (selection && selection.length <= 300 && this.state.quote.trim().length === 0) {
       this.state.quote = selection;
     }

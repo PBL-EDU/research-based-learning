@@ -1224,3 +1224,12 @@
 .rlc-lit-more {
   margin-left: auto;
 }
+
+.rlc-phase-dot.rlc-phase-locked {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.rlc-phase-dot:disabled {
+  pointer-events: none;
+}
