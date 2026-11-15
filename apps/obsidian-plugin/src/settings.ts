@@ -37,6 +37,8 @@ export interface RlcSettings {
   autoTranslateTitle: boolean;
   /** 实践提醒：上次弹 Notice 的日期（YYYY-MM-DD），每天最多一次。 */
   practiceNoticeDate: string;
+  /** 领域综述读完的时间（key = 领域名），用于解锁研究计划。 */
+  reviewReadAt: Record<string, string>;
 }
 
 export interface AudienceProfile {
@@ -70,6 +72,7 @@ export const DEFAULT_SETTINGS: RlcSettings = {
   imageModel: "doubao-seedream-5-0-pro-260628",
   autoTranslateTitle: true,
   practiceNoticeDate: "",
+  reviewReadAt: {},
 };
 
 export class RlcSettingTab extends PluginSettingTab {

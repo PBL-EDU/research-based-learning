@@ -81,6 +81,15 @@ export function literatureReviewPath(domainName: string): string {
   return `${domainDir(domainName)}/文献综述.md`;
 }
 
+/** 研究计划笔记目录：与文献平级，不移动卡片。 */
+export function projectDir(domainName: string): string {
+  return `${domainDir(domainName)}/研究计划`;
+}
+
+export function projectPath(domainName: string, slug: string): string {
+  return `${projectDir(domainName)}/${safeSegment(slug, "未命名研究计划")}.md`;
+}
+
 export function assetsDir(domainName: string, citekey: string): string {
   return `${literatureDir(domainName, citekey)}/assets`;
 }

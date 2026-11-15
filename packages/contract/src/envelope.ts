@@ -26,6 +26,8 @@ export const CardEnvelope = z.object({
   domain: DomainRef,
   /** 主题（领域下的子分组），可选。 */
   theme: z.string().min(1).max(64).optional(),
+  /** 所属研究计划；一个项目可挂多张卡。 */
+  projectId: Uuid.optional(),
   title: z.string().min(1).max(120),
   tags: z.array(z.string().min(1).max(24)).max(10).default([]),
   /** 发布回执，服务器唯一被允许反向写入本地的一段元数据。 */

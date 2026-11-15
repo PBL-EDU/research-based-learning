@@ -16,6 +16,8 @@ export {
   literatureReviewPath,
   parseCardPath,
   pdfPath,
+  projectDir,
+  projectPath,
   safeSegment,
   shortId,
   skimReportPath,

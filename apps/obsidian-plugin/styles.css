@@ -1233,3 +1233,177 @@
 .rlc-phase-dot:disabled {
   pointer-events: none;
 }
+
+/* ===== 研究综述区块（置顶，琥珀色） ===== */
+.rlc-review-block {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, #d99a2b 45%, transparent);
+  border-left: 3px solid #d99a2b;
+  border-radius: 8px;
+  background: color-mix(in srgb, #d99a2b 8%, transparent);
+}
+
+.rlc-review-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rlc-review-pin {
+  font-size: 11px;
+}
+
+.rlc-review-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d99a2b;
+}
+
+.rlc-review-status {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--rlc-muted);
+}
+
+.rlc-review-points {
+  margin-top: 5px;
+  font-size: 11.5px;
+  color: var(--rlc-muted);
+  line-height: 1.45;
+}
+
+.rlc-review-questions {
+  margin-top: 4px;
+}
+
+.rlc-review-question {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 2px 0;
+  font-size: 11.5px;
+  color: var(--rlc-accent);
+  cursor: pointer;
+}
+
+.rlc-review-question:hover {
+  text-decoration: underline;
+}
+
+.rlc-review-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* ===== 研究计划区块（靛蓝色） ===== */
+.rlc-projects {
+  margin-top: 10px;
+  padding-left: 10px;
+  border-left: 2px solid color-mix(in srgb, var(--rlc-accent) 45%, transparent);
+}
+
+.rlc-projects-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rlc-projects-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rlc-accent);
+}
+
+.rlc-projects-empty {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--rlc-muted);
+}
+
+.rlc-project-card {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border: 1px solid color-mix(in srgb, var(--rlc-accent) 28%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--rlc-accent) 4%, transparent);
+  cursor: pointer;
+}
+
+.rlc-project-card:hover {
+  background: color-mix(in srgb, var(--rlc-accent) 8%, transparent);
+}
+
+.rlc-project-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rlc-project-mode {
+  font-size: 10px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  line-height: 16px;
+}
+
+.rlc-project-inquiry {
+  color: var(--rlc-accent);
+}
+
+.rlc-project-action {
+  color: var(--rlc-practice);
+}
+
+.rlc-project-stage,
+.rlc-project-count {
+  font-size: 10px;
+  color: var(--rlc-muted);
+}
+
+.rlc-project-title {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.rlc-project-dots {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.rlc-project-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--text-normal) 30%, transparent);
+}
+
+.rlc-project-dot-done {
+  background: var(--rlc-accent);
+  border-color: var(--rlc-accent);
+}
+
+.rlc-project-dot-current {
+  border-color: var(--rlc-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--rlc-accent) 20%, transparent);
+}
+
+.rlc-project-evidence {
+  margin-left: 6px;
+  font-size: 10px;
+  color: var(--rlc-muted);
+}
+
+.rlc-lit-section-title {
+  margin-top: 10px;
+  font-size: 10px;
+  color: var(--rlc-muted);
+  letter-spacing: 0.04em;
+}

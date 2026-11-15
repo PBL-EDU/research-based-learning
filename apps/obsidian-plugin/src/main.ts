@@ -29,6 +29,8 @@ import { PracticeCardModal } from "./ui/practice-modal";
 import { ProcessRecordModal } from "./ui/process-modal";
 import { PracticeSummaryModal } from "./ui/summary-modal";
 import { PracticeService } from "./core/practice-service";
+import { ProjectService } from "./core/project-service";
+import { ProjectModal } from "./ui/project-modal";
 import { DomainModal } from "./ui/domain-modal";
 import { LiteratureModal } from "./ui/literature-modal";
 import { OrganizeConsentModal } from "./ui/organize-consent-modal";
@@ -48,6 +50,7 @@ export default class RlcPlugin extends Plugin {
   organize!: OrganizeService;
   index!: VaultIndex;
   practice!: PracticeService;
+  projects!: ProjectService;
 
   private statusEl: HTMLElement | null = null;
   private planCheckState = new Map<string, Map<string, boolean>>();
@@ -62,6 +65,7 @@ export default class RlcPlugin extends Plugin {
     this.organize = new OrganizeService(this.ai, () => this.settings);
     this.index = new VaultIndex(this.app);
     this.practice = new PracticeService(this.app, this.cards);
+    this.projects = new ProjectService(this.app);
 
     this.addSettingTab(new RlcSettingTab(this.app, this));
 
@@ -454,6 +458,25 @@ export default class RlcPlugin extends Plugin {
     this.settings.practiceNoticeDate = today;
     await this.saveSettings();
     new Notice(`实践提醒：今天 ${due} 项${stuck > 0 ? `，${stuck} 项已卡住` : ""}`);
+  }
+
+  /** 从领域综述立项。 */
+  openProjectModal(domain: string, questions: string[] = []): void {
+    new ProjectModal(this.app, this, { domain, questions }, () => {
+      void this.refreshOverview();
+    }).open();
+  }
+
+  /** 打开研究计划：先同步进度与证据，再打开笔记。 */
+  async openProject(file: TFile): Promise<void> {
+    const project = await this.projects.readProject(file);
+    if (!project) {
+      new Notice("这不是研究计划笔记。");
+      return;
+    }
+    const synced = await this.projects.syncProject(project, this.index.listCards());
+    await this.cards.openFile(synced.file);
+    void this.refreshOverview();
   }
 
   /** 略读：自动带出文献笔记里的「## 摘要」作为输入。 */

@@ -4,6 +4,7 @@ import { cardFilePath } from "@rlc/vault-core";
 import type RlcPlugin from "../main";
 import { newUuid } from "../core/id";
 import type { CardContext } from "./card-modal";
+import type { ProjectData } from "../core/project-service";
 
 export interface PracticeSeed {
   /** 从哪张精读卡片立项而来；为空表示从文献直接建。 */
@@ -14,6 +15,8 @@ export interface PracticeSeed {
 export class PracticeCardModal extends Modal {
   private readonly cardId = newUuid();
   private busy = false;
+  private projectId = "";
+  private projectOptions: ProjectData[] = [];
 
   private goal = "";
   private steps = "";
@@ -32,8 +35,9 @@ export class PracticeCardModal extends Modal {
     this.scheduledFor = this.rlc.today();
   }
 
-  override onOpen(): void {
+  override async onOpen(): Promise<void> {
     this.modalEl.addClass("rlc-modal");
+    this.projectOptions = await this.rlc.projects.listProjects(this.context.domain);
     this.render();
   }
 
@@ -162,6 +166,7 @@ export class PracticeCardModal extends Modal {
       const candidate = {
         schema: "pc-card@1",
         cardId: this.cardId,
+        ...(this.projectId ? { projectId: this.projectId } : {}),
         kind: "practice",
         domain: { name: this.context.domain, slug: this.context.domainSlug },
         title: goal.split(/\r?\n/)[0]?.slice(0, 120) ?? "实践卡",

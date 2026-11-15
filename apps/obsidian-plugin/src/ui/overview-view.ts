@@ -262,11 +262,15 @@ export class ResearchOverviewView extends ItemView {
     const addLit = actions.createEl("button", { text: "＋ 文献", cls: "rlc-btn rlc-btn-ghost" });
     addLit.addEventListener("click", () => this.rlc.openLiteratureModal(domain.domain));
 
+    await this.renderReviewBlock(card, domain.domain, reviewPath, reviewState);
+
     const body = card.createDiv({ cls: "rlc-domain-body" });
     if (collapsed) {
       body.addClass("rlc-hidden");
       return;
     }
+
+    await this.renderProjects(body, domain.domain, reviewState);
 
     if (domain.literatures.length === 0) {
       const hint = body.createDiv({ cls: "rlc-domain-empty" });
@@ -278,8 +282,188 @@ export class ResearchOverviewView extends ItemView {
       return;
     }
 
+    if (domain.literatures.length > 0) {
+      body.createDiv({
+        text: `文献 ${domain.literatures.length} 篇`,
+        cls: "rlc-lit-section-title",
+      });
+    }
+
     for (const literature of domain.literatures) {
       this.renderLiterature(body, literature, pendingPaths);
+    }
+  }
+
+  private async renderReviewBlock(
+    card: HTMLElement,
+    domain: string,
+    reviewPath: string,
+    state: "missing" | "blank" | "ready",
+  ): Promise<void> {
+    const block = card.createDiv({ cls: "rlc-review-block" });
+    const head = block.createDiv({ cls: "rlc-review-head" });
+    head.createEl("span", { text: "📌", cls: "rlc-review-pin" });
+    head.createEl("span", { text: "研究综述", cls: "rlc-review-title" });
+    const readAt = this.rlc.settings.reviewReadAt[domain];
+    head.createEl("span", {
+      text: state === "ready" ? (readAt ? "已略读" : "未略读") : "未生成",
+      cls: "rlc-review-status",
+    });
+
+    if (state !== "ready") {
+      block.createEl("p", {
+        text: state === "blank" ? "综述还是空的。先生成，再略读立项。" : "还没有综述。",
+        cls: "rlc-hint",
+      });
+      const generate = block.createEl("button", {
+        text: "生成综述",
+        cls: "rlc-btn rlc-btn-primary rlc-btn-small",
+      });
+      generate.addEventListener("click", () => void this.rlc.generateDomainReview(domain));
+      return;
+    }
+
+    const file = this.app.vault.getAbstractFileByPath(reviewPath);
+    const content = file instanceof TFile ? await this.app.vault.read(file) : "";
+    const highlights = this.reviewHighlights(content);
+    const questions = this.reviewQuestions(content);
+
+    if (highlights.length > 0) {
+      const list = block.createDiv({ cls: "rlc-review-points" });
+      for (const line of highlights) list.createDiv({ text: `· ${line}`, cls: "rlc-review-point" });
+    }
+
+    if (questions.length > 0) {
+      const list = block.createDiv({ cls: "rlc-review-questions" });
+      questions.slice(0, 3).forEach((question) => {
+        const button = list.createEl("button", {
+          text: question,
+          cls: "rlc-review-question",
+        });
+        button.addEventListener("click", () =>
+          this.rlc.openProjectModal(domain, questions),
+        );
+      });
+    }
+
+    const row = block.createDiv({ cls: "rlc-review-actions" });
+    const open = row.createEl("button", { text: "打开综述", cls: "rlc-btn rlc-btn-small" });
+    open.addEventListener("click", () => void this.openPath(reviewPath));
+
+    if (!readAt) {
+      const done = row.createEl("button", {
+        text: "我已读完",
+        cls: "rlc-btn rlc-btn-primary rlc-btn-small",
+      });
+      done.addEventListener("click", () => {
+        this.rlc.settings.reviewReadAt[domain] = new Date().toISOString();
+        void this.rlc.saveSettings().then(() => this.render());
+      });
+    } else {
+      const create = row.createEl("button", {
+        text: "＋ 从综述立项",
+        cls: "rlc-btn rlc-btn-primary rlc-btn-small",
+      });
+      create.addEventListener("click", () => this.rlc.openProjectModal(domain, questions));
+    }
+  }
+
+  private reviewHighlights(content: string): string[] {
+    return content
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(
+        (line) =>
+          line.length > 0 &&
+          !line.startsWith("#") &&
+          !line.startsWith("---") &&
+          !line.startsWith("<!--") &&
+          !line.startsWith(">"),
+      )
+      .map((line) => line.replace(/^[-*]\s+/, ""))
+      .filter((line) => line.length > 8)
+      .slice(0, 3);
+  }
+
+  private reviewQuestions(content: string): string[] {
+    const match = /^##\s*(?:\d+[、.]\s*)?可研究问题\s*$/m.exec(content);
+    if (!match) return [];
+    const start = match.index + match[0].length;
+    const rest = content.slice(start);
+    const next = /\n## /.exec(rest);
+    const section = next ? rest.slice(0, next.index) : rest;
+    return section
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .map((line) => line.replace(/^(?:\d+[.)、]|[-*])\s*/, ""))
+      .filter((line) => line.length > 8)
+      .slice(0, 3);
+  }
+
+  private async renderProjects(
+    body: HTMLElement,
+    domain: string,
+    reviewState: "missing" | "blank" | "ready",
+  ): Promise<void> {
+    const section = body.createDiv({ cls: "rlc-projects" });
+    const head = section.createDiv({ cls: "rlc-projects-head" });
+    const projects = await this.rlc.projects.listProjects(domain);
+    head.createEl("span", { text: `研究计划 ${projects.length}`, cls: "rlc-projects-title" });
+
+    const read = Boolean(this.rlc.settings.reviewReadAt[domain]);
+    if (read) {
+      const add = head.createEl("button", { text: "＋", cls: "rlc-btn rlc-btn-small" });
+      add.title = "新建研究计划";
+      add.addEventListener("click", () => this.rlc.openProjectModal(domain));
+    }
+
+    if (projects.length === 0) {
+      section.createDiv({
+        text: read
+          ? "还没有研究计划。从综述里选一个问题开始。"
+          : reviewState === "ready"
+            ? "略读综述后即可立项。"
+            : "先生成综述，再立项。",
+        cls: "rlc-projects-empty",
+      });
+      return;
+    }
+
+    const cards = this.rlc.index.listCards();
+    for (const project of projects) {
+      const evaluated = this.rlc.projects.evaluate(project, cards);
+      const current = evaluated.progress.findIndex((value) => !value);
+      const done = evaluated.progress.filter(Boolean).length;
+      const row = section.createDiv({ cls: "rlc-project-card" });
+      row.addEventListener("click", () => void this.rlc.openProject(project.file));
+
+      const top = row.createDiv({ cls: "rlc-project-top" });
+      top.createEl("span", {
+        text: project.mode === "action" ? "行动型" : "探究型",
+        cls: `rlc-project-mode rlc-project-${project.mode}`,
+      });
+      top.createEl("span", {
+        text: current < 0 ? "已完成" : ["立问", "寻域", "求证", "知行"][current],
+        cls: "rlc-project-stage",
+      });
+      top.createEl("span", { text: `${done}/4`, cls: "rlc-project-count" });
+
+      row.createDiv({ text: project.title, cls: "rlc-project-title" });
+
+      const dots = row.createDiv({ cls: "rlc-project-dots" });
+      evaluated.progress.forEach((value, index) => {
+        dots.createEl("span", {
+          cls:
+            "rlc-project-dot" +
+            (value ? " rlc-project-dot-done" : "") +
+            (index === current ? " rlc-project-dot-current" : ""),
+          attr: { "aria-label": ["立问", "寻域", "求证", "知行"][index] ?? "" },
+        });
+      });
+      dots.createEl("span", {
+        text: `证据 ${evaluated.evidence.length}`,
+        cls: "rlc-project-evidence",
+      });
     }
   }
 

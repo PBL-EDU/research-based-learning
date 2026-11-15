@@ -45,6 +45,8 @@ export class VaultIndex {
         kind: typeof frontmatter.kind === "string" ? frontmatter.kind : location.kind,
         title: typeof frontmatter.title === "string" ? frontmatter.title : file.basename,
         cardId: typeof frontmatter.cardId === "string" ? frontmatter.cardId : undefined,
+        projectId:
+          typeof frontmatter.projectId === "string" ? frontmatter.projectId : undefined,
         scheduledFor:
           typeof plan?.scheduledFor === "string" ? plan.scheduledFor : undefined,
         dueBy: typeof plan?.dueBy === "string" ? plan.dueBy : undefined,

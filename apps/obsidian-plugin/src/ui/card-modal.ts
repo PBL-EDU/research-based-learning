@@ -2,6 +2,7 @@ import { Modal, Notice, Setting, TFile } from "obsidian";
 import { parseCard } from "@rlc/contract";
 import { assetsDir, cardFilePath, literatureNotePath, shortId } from "@rlc/vault-core";
 import type RlcPlugin from "../main";
+import type { ProjectData } from "../core/project-service";
 import { newUuid } from "../core/id";
 import { deepReadDraftMessages, parseDraftResult } from "../core/prompts";
 
@@ -39,6 +40,8 @@ interface DraftState {
 export class DeepReadCardModal extends Modal {
   private readonly cardId = newUuid();
   private busy = false;
+  private projectId = "";
+  private projectOptions: ProjectData[] = [];
 
   private readonly state: DraftState = {
     title: "",
@@ -65,8 +68,9 @@ export class DeepReadCardModal extends Modal {
     super(app);
   }
 
-  override onOpen(): void {
+  override async onOpen(): Promise<void> {
     this.modalEl.addClass("rlc-modal");
+    this.projectOptions = await this.rlc.projects.listProjects(this.context.domain);
     // 优先用调用方显式传入的选区（编辑器右键），其次读当前活动编辑器。
     const explicit = this.initialQuote?.trim();
     const selection = explicit || this.app.workspace.activeEditor?.editor?.getSelection()?.trim();
@@ -98,6 +102,22 @@ export class DeepReadCardModal extends Modal {
     this.textRow("卡片标题", "一句话说清这张卡片的主张", this.state.title, (value) => {
       this.state.title = value;
     });
+
+    if (this.projectOptions.length > 0) {
+      new Setting(contentEl)
+        .setName("所属研究计划")
+        .setDesc("可稍后挂接；挂接后自动计入项目证据")
+        .addDropdown((dropdown) => {
+          dropdown.addOption("", "不归属");
+          for (const project of this.projectOptions) {
+            dropdown.addOption(project.projectId, project.title);
+          }
+          dropdown.setValue(this.projectId).onChange((value) => {
+            this.projectId = value;
+          });
+        })
+        .settingEl.addClass("rlc-field-stacked");
+    }
 
     contentEl.createEl("h4", { text: "Aha 五点" });
     this.areaRow("原文摘录", "只粘贴原文，不改写；上限 300 字（版权红线）", this.state.quote, (value) => {
@@ -252,6 +272,7 @@ export class DeepReadCardModal extends Modal {
       const candidate = {
         schema: "dr-card@1",
         cardId: this.cardId,
+        ...(this.projectId ? { projectId: this.projectId } : {}),
         kind: "deep_read",
         domain: { name: this.context.domain, slug: this.context.domainSlug },
         title: this.state.title.trim(),
