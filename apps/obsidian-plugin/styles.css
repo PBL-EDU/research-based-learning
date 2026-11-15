@@ -663,11 +663,10 @@
 }
 
 .rlc-practice-top {
-  margin: 4px 0 10px;
-  padding: 8px;
-  border: 1px solid var(--rlc-line);
-  border-radius: 10px;
-  background: var(--rlc-surface);
+  margin: 4px 0 12px;
+  padding: 0;
+  border: none;
+  background: transparent;
 }
 
 .rlc-calendar-head {
@@ -770,9 +769,11 @@
 }
 
 .rlc-today {
-  margin-top: 6px;
-  border-top: 1px dashed var(--rlc-line);
-  padding-top: 6px;
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-left: 3px solid var(--rlc-accent);
+  border-radius: 0 6px 6px 0;
+  background: var(--rlc-accent-weak);
 }
 
 .rlc-today-title {
@@ -1055,4 +1056,27 @@
 .rlc-dot {
   width: 5px;
   height: 5px;
+}
+
+/* 三种框区分：日历用浅底、今日用强调条、领域用卡片 */
+.rlc-calendar {
+  border: 1px solid color-mix(in srgb, var(--text-normal) 10%, transparent);
+  border-radius: 8px;
+  padding: 6px;
+  margin-bottom: 8px;
+}
+
+.rlc-calendar-weekdays {
+  background: color-mix(in srgb, var(--text-normal) 7%, transparent) !important;
+  border-radius: 5px;
+}
+
+.rlc-calendar-grid {
+  border: none !important;
+  background: transparent !important;
+}
+
+.rlc-domain-card {
+  border-radius: 10px;
+  border-width: 1px;
 }

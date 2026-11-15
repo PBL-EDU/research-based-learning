@@ -81,9 +81,9 @@ export class RlcSettingTab extends PluginSettingTab {
   }
 
   override display(): void {
-    const { containerEl } = this;
-    containerEl.empty();
-    containerEl.addClass("rlc-settings");
+    this.containerEl.empty();
+    // 自建容器：设置项一定在 .rlc-settings 内，不依赖 Obsidian 的容器类。
+    const containerEl = this.containerEl.createDiv({ cls: "rlc-settings" });
     new Setting(containerEl).setName("研究性学习社区").setHeading();
     containerEl.createEl("p", {
       text: `插件版本 ${this.rlc.manifest.version} · 每日笔记会读取核心日记配置`,
