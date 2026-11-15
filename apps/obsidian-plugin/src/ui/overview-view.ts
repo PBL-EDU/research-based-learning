@@ -1,11 +1,14 @@
-import { ItemView, TFile, type WorkspaceLeaf } from "obsidian";
-import { domainSlug, literatureReviewPath, STATUS_LABEL } from "@rlc/vault-core";
-import { buildOverview, formatDay, type CardSummary } from "../core/overview";
+import { ItemView, Menu, TFile, type WorkspaceLeaf } from "obsidian";
+import { domainSlug, fullTextPath, literatureReviewPath, STATUS_LABEL } from "@rlc/vault-core";
+import { buildOverview, formatDay, type CardSummary, type LiteratureNode } from "../core/overview";
 import { isReviewEmpty } from "../core/review";
 import type RlcPlugin from "../main";
 import type { CardContext } from "./card-modal";
 
 export const VIEW_TYPE_RLC_OVERVIEW = "rlc-overview";
+
+const LIT_STEP_LABELS = ["下载原文", "整理", "略读", "精读卡片", "实践卡"];
+const LIT_NEXT_LABELS = ["下载原文", "整理", "略读", "精读", "实践"];
 
 /**
  * 右侧栏总览：领域 → 文献 → 卡片。
@@ -338,43 +341,44 @@ export class ResearchOverviewView extends ItemView {
     // 操作按固定顺序排一行：1 下载原文 → 2 整理 → 3 略读 → 4 精读卡片。
     // 放在标题下方而不是同一行，标题长短就不会再推动按钮位置。
     const actions = block.createDiv({ cls: "rlc-lit-actions" });
+    const progress = this.literatureProgress(literature);
+    const done = progress.filter(Boolean).length;
+    const nextIndex = progress.findIndex((value) => !value);
 
-    const hasPdf = Boolean(literature.pdfPath);
-    const download = actions.createEl("button", {
-      text: hasPdf ? "1 已下载" : "1 原文",
-      cls: "rlc-btn rlc-btn-ghost",
+    const dots = actions.createDiv({ cls: "rlc-phase-dots" });
+    progress.forEach((value, index) => {
+      const dot = dots.createEl("button", {
+        cls: "rlc-phase-dot" + (value ? " rlc-dot-done" : "") + (index === nextIndex ? " rlc-dot-current" : ""),
+        attr: { "aria-label": `第 ${index + 1} 步：${LIT_STEP_LABELS[index]}` },
+      });
+      dot.title = `${index + 1} ${LIT_STEP_LABELS[index]}`;
+      dot.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this.runLiteratureStep(literature, index);
+      });
     });
-    download.disabled = hasPdf || !literature.doi;
-    download.title = hasPdf
-      ? "原文已在文献文件夹里"
-      : literature.doi
-        ? "下载开放获取的原文 PDF"
-        : "这篇文献没有 DOI，无法自动定位开放获取版本";
-    if (!download.disabled) {
-      download.addEventListener("click", () => void this.rlc.downloadLiteraturePdf(literature));
-    }
+    actions.createSpan({ text: `${done}/5`, cls: "rlc-phase-count" });
 
-    const organize = actions.createEl("button", { text: "2 整理", cls: "rlc-btn rlc-btn-ghost" });
-    organize.title = "PDF → Markdown（OCR + 分节 + 英文翻译）";
-    organize.addEventListener("click", () => void this.rlc.organizeLiterature(literature));
-
-    const skim = actions.createEl("button", { text: "3 略读", cls: "rlc-btn rlc-btn-ghost" });
-    skim.title = "生成略读报告，推进阅读状态";
-    skim.addEventListener("click", () => void this.rlc.openSkimModal(literature));
-
-    const addCard = actions.createEl("button", {
-      text: "4 精读",
-      cls: "rlc-btn rlc-btn-primary",
+    const next = actions.createEl("button", {
+      text: nextIndex < 0 ? "已完成" : `下一步：${LIT_NEXT_LABELS[nextIndex]}`,
+      cls: "rlc-btn rlc-btn-primary rlc-btn-small",
     });
-    addCard.title = "为这篇文献新建精读卡片";
-    addCard.addEventListener("click", () => this.rlc.openCardModal(this.contextFor(literature)));
-
-    const addPractice = actions.createEl("button", {
-      text: "5 实践",
-      cls: "rlc-btn rlc-btn-ghost",
+    next.disabled = nextIndex < 0;
+    next.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (nextIndex >= 0) this.runLiteratureStep(literature, nextIndex);
     });
-    addPractice.title = "新建实践卡：计划 → 过程 → 总结";
-    addPractice.addEventListener("click", () => this.rlc.openPracticeModal(this.contextFor(literature)));
+
+    const more = actions.createEl("button", {
+      text: "⋯",
+      cls: "rlc-btn rlc-btn-small rlc-lit-more",
+      attr: { "aria-label": "全部动作" },
+    });
+    more.title = "全部动作";
+    more.addEventListener("click", (event) => {
+      event.stopPropagation();
+      this.showLiteratureMenu(event, literature);
+    });
 
     if (literature.cards.length === 0) return;
 
@@ -701,6 +705,53 @@ export class ResearchOverviewView extends ItemView {
       row.createSpan({ text: status.text, cls: `rlc-practice-status rlc-practice-${status.tone}` });
       row.addEventListener("click", () => void this.openPath(card.path));
     }
+  }
+
+  private literatureProgress(literature: LiteratureNode): boolean[] {
+    const fullText = this.app.vault.getAbstractFileByPath(
+      fullTextPath(literature.domain, literature.folder),
+    );
+    const skimmed = ["skimming", "reading", "deep_read", "done"].includes(literature.status);
+    return [
+      Boolean(literature.pdfPath),
+      Boolean(fullText),
+      skimmed,
+      literature.cards.some((card) => card.path.includes("-dr-")),
+      literature.cards.some((card) => card.path.includes("-pc-")),
+    ];
+  }
+
+  private runLiteratureStep(literature: LiteratureNode, index: number): void {
+    if (index === 0) {
+      if (literature.pdfPath) void this.openPath(literature.pdfPath);
+      else void this.rlc.downloadLiteraturePdf(literature);
+      return;
+    }
+    if (index === 1) {
+      void this.rlc.organizeLiterature(literature);
+      return;
+    }
+    if (index === 2) {
+      void this.rlc.openSkimModal(literature);
+      return;
+    }
+    if (index === 3) {
+      this.rlc.openCardModal(this.contextFor(literature));
+      return;
+    }
+    this.rlc.openPracticeModal(this.contextFor(literature));
+  }
+
+  private showLiteratureMenu(event: MouseEvent, literature: LiteratureNode): void {
+    const menu = new Menu();
+    LIT_STEP_LABELS.forEach((label, index) => {
+      menu.addItem((item) =>
+        item
+          .setTitle(`${index + 1} ${label}`)
+          .onClick(() => this.runLiteratureStep(literature, index)),
+      );
+    });
+    menu.showAtMouseEvent(event);
   }
 
   private contextFor(literature: {

@@ -1175,3 +1175,52 @@
 .rlc-stats {
   margin-bottom: 0;
 }
+
+/* 文献动作：进度点 + 下一步 + 更多 */
+.rlc-lit-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  grid-template-columns: none;
+}
+
+.rlc-phase-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rlc-phase-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--text-normal) 28%, transparent);
+  background: transparent;
+  cursor: pointer;
+}
+
+.rlc-phase-dot.rlc-dot-done {
+  background: var(--rlc-accent);
+  border-color: var(--rlc-accent);
+}
+
+.rlc-phase-dot.rlc-dot-current {
+  border-color: var(--rlc-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--rlc-accent) 22%, transparent);
+}
+
+.rlc-phase-count {
+  font-size: 10px;
+  color: var(--rlc-muted);
+  margin-right: 2px;
+}
+
+.rlc-lit-actions .rlc-btn {
+  font-size: 10px;
+  padding: 2px 8px;
+}
+
+.rlc-lit-more {
+  margin-left: auto;
+}
