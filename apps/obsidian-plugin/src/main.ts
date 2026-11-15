@@ -31,6 +31,7 @@ import { PracticeSummaryModal } from "./ui/summary-modal";
 import { PracticeService } from "./core/practice-service";
 import { ProjectService } from "./core/project-service";
 import { ProjectModal } from "./ui/project-modal";
+import { ProjectActionsModal } from "./ui/project-actions-modal";
 import { DomainModal } from "./ui/domain-modal";
 import { LiteratureModal } from "./ui/literature-modal";
 import { OrganizeConsentModal } from "./ui/organize-consent-modal";
@@ -465,6 +466,16 @@ export default class RlcPlugin extends Plugin {
     new ProjectModal(this.app, this, { domain, questions }, () => {
       void this.refreshOverview();
     }).open();
+  }
+
+  /** 项目操作面板：立问向导、人物、物/组织、访谈。 */
+  async openProjectActions(file: TFile): Promise<void> {
+    const project = await this.projects.readProject(file);
+    if (!project) {
+      new Notice("这不是研究计划笔记。");
+      return;
+    }
+    new ProjectActionsModal(this.app, this, project, () => void this.refreshOverview()).open();
   }
 
   /** 打开研究计划：先同步进度与证据，再打开笔记。 */

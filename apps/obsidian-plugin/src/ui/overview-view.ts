@@ -464,6 +464,17 @@ export class ResearchOverviewView extends ItemView {
         text: `证据 ${evaluated.evidence.length}`,
         cls: "rlc-project-evidence",
       });
+
+      const more = dots.createEl("button", {
+        text: "⋯",
+        cls: "rlc-btn rlc-btn-small rlc-project-more",
+        attr: { "aria-label": "项目操作" },
+      });
+      more.title = "立问向导 / 添加人物 / 访谈";
+      more.addEventListener("click", (event) => {
+        event.stopPropagation();
+        void this.rlc.openProjectActions(project.file);
+      });
     }
   }
 
