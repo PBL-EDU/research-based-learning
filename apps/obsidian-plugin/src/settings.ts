@@ -84,6 +84,8 @@ export class RlcSettingTab extends PluginSettingTab {
     this.containerEl.empty();
     // 自建容器：设置项一定在 .rlc-settings 内，不依赖 Obsidian 的容器类。
     const containerEl = this.containerEl.createDiv({ cls: "rlc-settings" });
+    // 主题可能覆盖 setting-item 的 padding；用 Obsidian 允许的 setCssStyles 兜底。
+    containerEl.setCssStyles({ paddingLeft: "24px", paddingRight: "24px", paddingBottom: "48px" });
     new Setting(containerEl).setName("研究性学习社区").setHeading();
     containerEl.createEl("p", {
       text: `插件版本 ${this.rlc.manifest.version} · 每日笔记会读取核心日记配置`,
