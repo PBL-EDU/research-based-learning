@@ -591,9 +591,8 @@
 
 /* 设置页左右留白 */
 .rlc-settings {
-  padding-inline: 32px !important;
-  padding-block: 4px 48px;
-  padding-bottom: 48px;
+  margin: 0 24px 48px !important;
+  padding: 0 !important;
   box-sizing: border-box;
   overflow-x: hidden;
 }
@@ -602,8 +601,19 @@
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 6px;
-  padding: 10px 14px;
+  padding: 10px 0 !important;
   border-radius: 8px;
+}
+
+.rlc-settings .setting-item-info {
+  padding-left: 14px;
+}
+
+.rlc-settings .setting-item-control {
+  padding-left: 14px;
+  padding-right: 14px;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .rlc-settings .setting-item-info {
@@ -663,7 +673,7 @@
 }
 
 .rlc-practice-top {
-  margin: 4px 0 12px;
+  margin: 4px 0 0;
   padding: 0;
   border: none;
   background: transparent;
@@ -1079,4 +1089,31 @@
 .rlc-domain-card {
   border-radius: 10px;
   border-width: 1px;
+}
+
+/* 总览面板：一个圆角框包住标题、统计、日历、今日 */
+.rlc-overview-panel {
+  border: 1px solid color-mix(in srgb, var(--text-normal) 12%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--text-normal) 3%, transparent);
+  padding: 10px;
+  margin-bottom: 14px;
+}
+
+.rlc-calendar {
+  border: none;
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.rlc-today {
+  margin-top: 6px;
+}
+
+/* 日历卡片：日历 + 今日同框 */
+.rlc-calendar-card {
+  border: 1px solid color-mix(in srgb, var(--text-normal) 12%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text-normal) 2%, transparent);
+  padding: 8px;
 }

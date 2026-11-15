@@ -120,9 +120,11 @@ export class ResearchOverviewView extends ItemView {
     // 待发布卡片：折叠的文献行上也要能看见「待发布 N」。
     const pendingPaths = new Set(await this.rlc.publisher.outboxCardPaths());
 
-    this.renderHeader(root, overview);
-    this.renderStats(root, overview);
-    this.renderPracticeTop(root, overview);
+    // 顶部总览面板：标题、统计、日历、今日共用一个圆角框。
+    const panel = root.createDiv({ cls: "rlc-overview-panel" });
+    this.renderHeader(panel, overview);
+    this.renderStats(panel, overview);
+    this.renderPracticeTop(panel, overview);
 
     if (pendingPaths.size > 0) {
       const row = root.createDiv({ cls: "rlc-pending" });
@@ -592,8 +594,10 @@ export class ResearchOverviewView extends ItemView {
     if (practices.length === 0) return;
 
     const wrap = root.createDiv({ cls: "rlc-practice-top" });
-    this.renderCalendar(wrap, practices);
-    this.renderDayList(wrap, practices);
+    // 日历卡片：日历与今日列表同框
+    const card = wrap.createDiv({ cls: "rlc-calendar-card" });
+    this.renderCalendar(card, practices);
+    this.renderDayList(card, practices);
   }
 
   private renderCalendar(wrap: HTMLElement, practices: CardSummary[]): void {
