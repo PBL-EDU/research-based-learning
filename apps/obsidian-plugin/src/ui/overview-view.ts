@@ -120,11 +120,10 @@ export class ResearchOverviewView extends ItemView {
     // 待发布卡片：折叠的文献行上也要能看见「待发布 N」。
     const pendingPaths = new Set(await this.rlc.publisher.outboxCardPaths());
 
-    // 顶部总览面板：标题、统计、日历、今日共用一个圆角框。
-    const panel = root.createDiv({ cls: "rlc-overview-panel" });
-    this.renderHeader(panel, overview);
-    this.renderStats(panel, overview);
-    this.renderPracticeTop(panel, overview);
+    this.renderHeader(root, overview);
+    const statsPanel = root.createDiv({ cls: "rlc-stats-panel" });
+    this.renderStats(statsPanel, overview);
+    this.renderPracticeTop(root, overview);
 
     if (pendingPaths.size > 0) {
       const row = root.createDiv({ cls: "rlc-pending" });
@@ -145,21 +144,21 @@ export class ResearchOverviewView extends ItemView {
 
   private renderHeader(root: HTMLElement, overview: ReturnType<typeof buildOverview>): void {
     const header = root.createDiv({ cls: "rlc-header" });
-    const left = header.createDiv({ cls: "rlc-header-left" });
-    left.createDiv({ text: "研究性学习", cls: "rlc-title" });
-    left.createDiv({ text: "总览", cls: "rlc-title-sub" });
+    header.createDiv({ text: "研究性学习", cls: "rlc-title" });
 
     const right = header.createDiv({ cls: "rlc-header-right" });
     const settings = this.rlc.settings;
     const name = settings.bindName || settings.authorName || "我";
-    const avatar = right.createDiv({ cls: "rlc-avatar" });
-    avatar.setText(name.slice(0, 1));
     right.createDiv({
-      text: settings.bindHandle ? name : "未绑定",
+      text: name,
       cls: "rlc-identity",
       title: settings.bindHandle
         ? `${settings.bindName}（${settings.bindHandle}）· ${settings.bindOrgName || settings.bindOrg}`
         : "在设置里用邀请码绑定身份",
+    });
+    right.createSpan({
+      text: settings.bindHandle ? "已绑定" : "未绑定",
+      cls: "rlc-identity-status",
     });
 
     const collapse = right.createEl("button", {

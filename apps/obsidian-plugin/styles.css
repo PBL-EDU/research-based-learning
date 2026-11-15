@@ -607,6 +607,20 @@
 
 .rlc-settings .setting-item-info {
   padding-left: 14px;
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.rlc-settings .setting-item-name {
+  flex: none;
+}
+
+.rlc-settings .setting-item-description {
+  flex: 1 1 auto;
+  margin-top: 0;
 }
 
 .rlc-settings .setting-item-control {
@@ -1116,4 +1130,48 @@
   border-radius: 10px;
   background: color-mix(in srgb, var(--text-normal) 2%, transparent);
   padding: 8px;
+}
+
+/* 头部一行，不换行 */
+.rlc-header {
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.rlc-title {
+  flex: none;
+  white-space: nowrap;
+}
+
+.rlc-header-right {
+  gap: 6px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.rlc-identity {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rlc-identity-status {
+  font-size: 10px;
+  color: var(--rlc-muted);
+  white-space: nowrap;
+}
+
+/* 统计五项的外框 */
+.rlc-stats-panel {
+  border: 1px solid color-mix(in srgb, var(--text-normal) 12%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text-normal) 3%, transparent);
+  padding: 8px;
+  margin-bottom: 12px;
+}
+
+.rlc-stats {
+  margin-bottom: 0;
 }
